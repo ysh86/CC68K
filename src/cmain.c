@@ -30,17 +30,17 @@ extern TABLE    tagtable;
 int		mainflag;
 extern int      total_errors;
 
-int options();
-int openfiles();
-void initsym();
-int getch();
-void getsym();
-void compile();
-void summary();
-void release_global();
-void closefiles();
-void makename();
-void list_table();
+extern int options();
+extern int openfiles();
+extern void initsym();
+extern int getch();
+extern void getsym();
+extern void compile();
+extern void summary();
+extern void release_global();
+extern void closefiles();
+extern void makename();
+extern void list_table();
 
 int main(argc,argv)
 int     argc;
