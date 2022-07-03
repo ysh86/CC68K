@@ -1,4 +1,4 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +14,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -22,7 +23,7 @@
  *		Norcross, Ga 30092
  */
 
-dooper(node)
+ dooper(node)
 /*
  *      dooper will execute a constant operation in a node and
  *      modify the node to be the result of the operation.
@@ -100,7 +101,7 @@ int     i;
         return m;
 }
 
-opt0(node)
+ opt0(node)
 /*
  *      opt0 - delete useless expressions and combine constants.
  *
@@ -306,9 +307,9 @@ struct enode    *node;
                 case en_lsh:
                         if( node->v.p[0]->nodetype == en_icon )
                                 return xfold(node->v.p[1]) << node->v.p[0]->v.i;
-                        else if( node->v.p[1]->nodetype == en_icon )
+                         else if( node->v.p[1]->nodetype == en_icon )
                                 return xfold(node->v.p[0]) << node->v.p[1]->v.i;
-                        else return 0;
+                         else return 0;
                 case en_uminus:
                         return - xfold(node->v.p[0]);
                 case en_rsh:    case en_div:
@@ -332,7 +333,7 @@ struct enode    *node;
         return 0;
 }
 
-fold_const(node)
+ fold_const(node)
 /*
  *      reorganize an expression for optimal constant grouping.
  */
@@ -371,13 +372,14 @@ struct enode    **node;
         i = xfold(ep);
         if( i != 0 )
                 {
-                ep = makenode(en_icon,i,0);
-                ep = makenode(en_add,ep,*node);
+                ep =(struct enode *) makenode(en_icon,(struct enode *)i,
+                                                      (struct enode *)0);
+                ep =(struct enode *) makenode(en_add,ep,*node);
                 *node = ep;
                 }
 }
 
-opt4(node)
+ opt4(node)
 /*
  *      apply all constant optimizations.
  */
@@ -387,5 +389,3 @@ struct enode    **node;
         fold_const(node);
         opt0(node);
 }
-
-

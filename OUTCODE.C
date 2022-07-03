@@ -1,4 +1,5 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "string.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -35,24 +36,24 @@ struct oplst {
         char    *s;
         int     ov;
         }       opl[] =
-        {       {"mov",op_move}, {"mov",op_moveq}, {"add",op_add},
-                {"add",op_addi}, {"add",op_addq}, {"sub",op_sub},
-                {"sub",op_subi}, {"sub",op_subq}, {"and",op_and},
-                {"or",op_or}, {"eor",op_eor}, {"muls",op_muls},
-                {"divs",op_divs}, {"swap",op_swap}, {"beq",op_beq},
-                {"bhi",op_bhi}, {"bhs",op_bhs}, {"blo",op_blo},
-                {"bls",op_bls}, {"mulu",op_mulu}, {"divu",op_divu},
-                {"bne",op_bne}, {"blt",op_blt}, {"ble",op_ble},
-                {"bgt",op_bgt}, {"bge",op_bge}, {"neg",op_neg},
-                {"not",op_not}, {"cmp",op_cmp}, {"ext",op_ext},
-                {"jmp",op_jmp}, {"jsr",op_jsr}, {"rts",op_rts},
-                {"lea",op_lea}, {"asr",op_asr}, {"asl",op_asl},
-                {"clr",op_clr}, {"link",op_link}, {"unlk",op_unlk},
-                {"bra",op_bra}, {"movm",op_movem}, {"pea",op_pea},
-                {"cmp",op_cmpi}, {"tst",op_tst}, {"dc",op_dc},
+        {       {"MOVE",op_move}, {"MOVE",op_moveq}, {"ADD",op_add},
+                {"ADD",op_addi}, {"ADD",op_addq}, {"SUB",op_sub},
+                {"SUB",op_subi}, {"SUB",op_subq}, {"AND",op_and},
+                {"OR",op_or}, {"EOR",op_eor}, {"MULS",op_muls},
+                {"DIVS",op_divs}, {"SWAP",op_swap}, {"BEQ",op_beq},
+                {"BHI",op_bhi}, {"BHS",op_bhs}, {"BLO",op_blo},
+                {"BLS",op_bls}, {"MULU",op_mulu}, {"DIVU",op_divu},
+                {"BNE",op_bne}, {"BLT",op_blt}, {"BLE",op_ble},
+                {"BGT",op_bgt}, {"BGE",op_bge}, {"NEG",op_neg},
+                {"NOT",op_not}, {"CMP",op_cmp}, {"EXT",op_ext},
+                {"JMP",op_jmp}, {"JSR",op_jsr}, {"RTS",op_rts},
+                {"LEA",op_lea}, {"ASR",op_asr}, {"ASL",op_asl},
+                {"CLR",op_clr}, {"LINK",op_link}, {"UNLK",op_unlk},
+                {"BRA",op_bra}, {"MOVEM",op_movem}, {"PEA",op_pea},
+                {"CMP",op_cmpi}, {"TST",op_tst}, {"DC",op_dc},
                 {0,0} };
 
-putop(op)
+ putop(op)
 int     op;
 {       int     i;
         i = 0;
@@ -68,22 +69,27 @@ int     op;
         printf("DIAG - illegal opcode.\n");
 }
 
-putconst(offset)
+ putconst(offset)
 /*
  *      put a constant to the output file.
  */
 struct enode    *offset;
-{       switch( offset->nodetype )
+{
+   char su[80];
+
+       switch( offset->nodetype )
                 {
                 case en_autocon:
                 case en_icon:
                         fprintf(output,"%d",offset->v.i);
                         break;
                 case en_labcon:
-                        fprintf(output,"L%%%d",offset->v.i);
+			fprintf(output,"L_%d",offset->v.i);
                         break;
                 case en_nacon:
-                        fprintf(output,"%s",offset->v.p[0]);
+                        strcpy(su,(char *)(offset->v.p[0]));    /* copy labels str */
+                        upcase(su);		      /* Transform to upper */
+                        fprintf(output,"%s",su);
                         break;
                 case en_add:
                         putconst(offset->v.p[0]);
@@ -105,7 +111,7 @@ struct enode    *offset;
                 }
 }
 
-putlen(l)
+ putlen(l)
 /*
  *      append the length field to an instruction.
  */
@@ -115,13 +121,13 @@ int     l;
                 case 0:
                         break;  /* no length field */
                 case 1:
-                        fprintf(output,".b");
+                        fprintf(output,".B");
                         break;
                 case 2:
-                        fprintf(output,".w");
+                        fprintf(output,".W");
                         break;
                 case 4:
-                        fprintf(output,".l");
+                        fprintf(output,".L");
                         break;
                 default:
                         printf("DIAG - illegal length field.\n");
@@ -129,7 +135,7 @@ int     l;
                 }
 }
 
-putamode(ap)
+ putamode(ap)
 /*
  *      output a general addressing mode.
  */
@@ -137,43 +143,43 @@ struct amode    *ap;
 {       switch( ap->mode )
                 {
                 case am_immed:
-                        fprintf(output,"&");
+                        fprintf(output,"#");
                 case am_direct:
                         putconst(ap->offset);
                         break;
                 case am_areg:
-                        fprintf(output,"%%a%d",ap->preg);
+                        fprintf(output,"A%d",ap->preg);
                         break;
                 case am_dreg:
-                        fprintf(output,"%%d%d",ap->preg);
+                        fprintf(output,"D%d",ap->preg);
                         break;
                 case am_ind:
-                        fprintf(output,"(%%a%d)",ap->preg);
+                        fprintf(output,"(A%d)",ap->preg);
                         break;
                 case am_ainc:
-                        fprintf(output,"(%%a%d)+",ap->preg);
+                        fprintf(output,"(A%d)+",ap->preg);
                         break;
                 case am_adec:
-                        fprintf(output,"-(%%a%d)",ap->preg);
+                        fprintf(output,"-(A%d)",ap->preg);
                         break;
                 case am_indx:
                         putconst(ap->offset);
-                        fprintf(output,"(%%a%d)",ap->preg);
+                        fprintf(output,"(A%d)",ap->preg);
                         break;
                 case am_xpc:
                         putconst(ap->offset);
-                        fprintf(output,"(%%d%d,%%pc)",ap->preg);
+                        fprintf(output,"(D%d,PC)",ap->preg);
                         break;
                 case am_indx2:
                         putconst(ap->offset);
-                        fprintf(output,"(%%a%d,%%d%d.l)",ap->preg,ap->sreg);
+                        fprintf(output,"(A%d,D%d.L)",ap->preg,ap->sreg);
                         break;
                 case am_indx3:
                         putconst(ap->offset);
-                        fprintf(output,"(%%a%d,%%a%d.l)",ap->preg,ap->sreg);
+                        fprintf(output,"(A%d,A%d.L)",ap->preg,ap->sreg);
                         break;
                 case am_mask:
-                        put_mask(ap->offset);
+                        put_mask((int)(ap->offset));
                         break;
                 default:
                         printf("DIAG - illegal address mode.\n");
@@ -181,7 +187,7 @@ struct amode    *ap;
                 }
 }
 
-put_code(op,len,aps,apd)
+ put_code(op,len,aps,apd)
 /*
  *      output a generic instruction.
  */
@@ -191,9 +197,9 @@ int             op, len;
 		{
 		switch( len )
 			{
-			case 1: fprintf(output,"\tbyte"); break;
-			case 2: fprintf(output,"\tshort"); break;
-			case 4: fprintf(output,"\tlong"); break;
+			case 1: fprintf(output,"\tDC.B"); break;
+			case 2: fprintf(output,"\tDC.W"); break;
+			case 4: fprintf(output,"\tDC.L"); break;
 			}
 		}
 	else
@@ -204,32 +210,38 @@ int             op, len;
         if( aps != 0 )
                 {
                 fprintf(output,"\t");
-		if( op == op_cmp || op == op_cmpi )
-			putamode( apd );
-		else
-			putamode(aps);
+		putamode(aps);
                 if( apd != 0 )
                         {
                         fprintf(output,",");
-			if( op == op_cmp || op == op_cmpi )
-				putamode( aps );
-			else
-                        	putamode(apd);
+                       	putamode(apd);
                         }
                 }
         fprintf(output,"\n");
 }
 
-put_mask(mask)
+ put_mask(mask)
 /*
  *      generate a register mask for restore and save.
  */
 int     mask;
 {       int     i;
-        fprintf(output,"&0x%04x",mask);
+        int     notfirst;
+/*        fprintf(output,"#$%04X",mask);	*/
+
+        notfirst = 0;
+        for(i=0; i< 16; i++)
+        {  if((mask & (1 << (15-i))) != 0)
+           { if( notfirst ) fprintf(output,"/");
+             notfirst=1;
+             putreg(i);
+           }
+        }
+
+
 }
 
-putreg(r)
+ putreg(r)
 /*
  *      generate a register name from a tempref number.
  */
@@ -240,23 +252,27 @@ int     r;
                 fprintf(output,"A%d",r - 8);
 }
 
-gen_strlab(s)
+ gen_strlab(s)
 /*
  *      generate a named label.
  */
 char    *s;
-{       fprintf(output,"%s:\n",s);
+{
+  char su[80];
+  strcpy(su,s);			/* Copy the label... */
+  upcase(su);			/* Convert to upper case */
+       fprintf(output,"%s:\n",su);
 }
 
-put_label(lab)
+ put_label(lab)
 /*
  *      output a compiler generated label.
  */
 int     lab;
-{       fprintf(output,"L%%%d:\n",lab);
+{       fprintf(output,"L_%d:\n",lab);
 }
 
-genbyte(val)
+int genbyte(val)
 int     val;
 {       if( gentype == bytegen && outcol < 60) {
                 fprintf(output,",%d",val & 0x00ff);
@@ -264,13 +280,14 @@ int     val;
                 }
         else    {
                 nl();
-                fprintf(output,"\tbyte\t%d",val & 0x00ff);
+                fprintf(output,"\tDC.B\t%d",val & 0x00ff);
                 gentype = bytegen;
                 outcol = 19;
                 }
+        return 1;               /* 1 byte per byte      */
 }
 
-genword(val)
+int genword(val)
 int     val;
 {       if( gentype == wordgen && outcol < 58) {
                 fprintf(output,",%d",val & 0x0ffff);
@@ -278,13 +295,14 @@ int     val;
                 }
         else    {
                 nl();
-                fprintf(output,"\tshort\t%d",val & 0x0ffff);
+                fprintf(output,"\tDC.W\t%d",val & 0x0ffff);
                 gentype = wordgen;
                 outcol = 21;
                 }
+        return 2;                       /* 2 bytes generated */
 }
 
-genlong(val)
+int  genlong(val)
 int     val;
 {       if( gentype == longgen && outcol < 56) {
                 fprintf(output,",%d",val);
@@ -292,13 +310,14 @@ int     val;
                 }
         else    {
                 nl();
-                fprintf(output,"\tlong\t%d",val);
+                fprintf(output,"\tDC.L\t%d",val);
                 gentype = longgen;
                 outcol = 25;
                 }
+       return 4;                        /* generates 4 bytes    */
 }
 
-genref(sp,offset)
+ genref(sp,offset)
 SYM     *sp;
 int     offset;
 {       char    sign;
@@ -310,7 +329,7 @@ int     offset;
                 sign = '+';
         if( gentype == longgen && outcol < 55 - strlen(sp->name)) {
                 if( sp->storage_class == sc_static)
-                        fprintf(output,",L%%%d%c%d",sp->value.i,sign,offset);
+			fprintf(output,",L_%d%c%d",sp->value.i,sign,offset);
                 else
                         fprintf(output,",%s%c%d",sp->name,sign,offset);
                 outcol += (11 + strlen(sp->name));
@@ -318,7 +337,7 @@ int     offset;
         else    {
                 nl();
                 if(sp->storage_class == sc_static)
-                    fprintf(output,"\tlong\tL%%%d%c%d",sp->value.i,sign,offset);
+		    fprintf(output,"\tlong\tL_%d%c%d",sp->value.i,sign,offset);
                 else
                     fprintf(output,"\tlong\t%s%c%d",sp->name,sign,offset);
                 outcol = 26 + strlen(sp->name);
@@ -326,21 +345,21 @@ int     offset;
                 }
 }
 
-genstorage(nbytes)
+ genstorage(nbytes)
 int     nbytes;
 {       nl();
-        fprintf(output,"\tspace\t%d\n",nbytes);
+        fprintf(output,"\tDS.B\t%d\n",nbytes);
 }
 
-gen_labref(n)
+ gen_labref(n)
 int     n;
 {       if( gentype == longgen && outcol < 58) {
-                fprintf(output,",L%%%d",n);
+		fprintf(output,",L_%d",n);
                 outcol += 6;
                 }
         else    {
                 nl();
-                fprintf(output,"\tlong\tL%%%d",n);
+		fprintf(output,"\tlong\tL_%d",n);
                 outcol = 22;
                 gentype = longgen;
                 }
@@ -353,16 +372,16 @@ int     stringlit(s)
 char    *s;
 {       struct slit     *lp;
         ++global_flag;          /* always allocate from global space. */
-        lp = xalloc(sizeof(struct slit));
+        lp = (struct slit *)xalloc(sizeof(struct slit));
         lp->label = nextlabel++;
-        lp->str = litlate(s);
+        lp->str =(char *) litlate(s);
         lp->next = strtab;
         strtab = lp;
         --global_flag;
         return lp->label;
 }
 
-dumplits()
+ dumplits()
 /*
  *      dump the string literal pool.
  */
@@ -380,7 +399,7 @@ dumplits()
         nl();
 }
 
-nl()
+ nl()
 {       if(outcol > 0) {
                 fprintf(output,"\n");
                 outcol = 0;
@@ -388,20 +407,31 @@ nl()
                 }
 }
 
-cseg()
+ cseg()
 {       if( curseg != codeseg) {
                 nl();
-                fprintf(output,"\ttext\n");
+                fprintf(output,"\tSECTION\t9\n");
                 curseg = codeseg;
                 }
 }
 
-dseg()
+ dseg()
 {       if( curseg != dataseg) {
                 nl();
-                fprintf(output,"\tdata\t2\n");
+                fprintf(output,"\tSECTION\t15\n");
                 curseg = dataseg;
                 }
 }
+ upcase(stg)				/* Convert string to upper case */
+char stg[];
+{
+  int i;
 
-
+  i=0;
+  while(stg[i])
+  {
+    stg[i]=toupper(stg[i]);
+    i++;
+  }
+}
+

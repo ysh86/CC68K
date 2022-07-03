@@ -1,8 +1,10 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "string.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
 #include        "cglbdec.h"
+
 
 /*
  *	68000 C compiler
@@ -21,12 +23,12 @@
  *		Box 920337
  *		Norcross, Ga 30092
  */
- 
+
 struct kwblk {
         char            *word;
         int		      stype;
         }       keywords[] = {
- 
+
         {"int", kw_int}, {"char", kw_char}, {"long", kw_long},
         {"float", kw_float}, {"double", kw_double}, {"return", kw_return},
         {"struct", kw_struct}, {"union", kw_union}, {"typedef", kw_typedef},
@@ -38,8 +40,8 @@ struct kwblk {
         {"register", kw_register}, {"unsigned", kw_unsigned},
         {"break", kw_break}, {"continue", kw_continue}, {"void", kw_void},
         {0, 0} };
- 
-searchkw()
+
+int searchkw()
 {       struct kwblk    *kwbp;
         kwbp = keywords;
         while(kwbp->word != 0) {
@@ -50,4 +52,3 @@ searchkw()
                 }
 }
 
-

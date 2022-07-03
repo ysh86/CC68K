@@ -1,8 +1,10 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "string.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
 #include        "cglbdec.h"
+
 
 /*
  *	68000 C compiler
@@ -27,7 +29,7 @@ int             incldepth = 0;
 int             inclline[10];
 char            *lptr;
 
-preprocess()
+int  preprocess()
 {       ++lptr;
         lastch = ' ';
         getsym();               /* get first word on line */
@@ -45,7 +47,7 @@ preprocess()
                 }
 }
 
-doinclude()
+int doinclude()
 {       int     rv;
         getsym();               /* get file to include */
         if( lastst != sconst ) {
@@ -67,7 +69,7 @@ doinclude()
         return rv;
 }
 
-dodefine()
+int dodefine()
 {       SYM     *sp;
         getsym();               /* get past #define */
         if( lastst != id ) {
@@ -75,12 +77,11 @@ dodefine()
                 return getline(incldepth == 0);
                 }
         ++global_flag;          /* always do #define as globals */
-        sp = xalloc(sizeof(SYM));
-        sp->name = litlate(lastid);
-        sp->value.s = litlate(lptr);
+        sp =(SYM *) xalloc(sizeof(SYM));
+        sp->name =(char *)litlate(lastid);
+        sp->value.s =(char *) litlate(lptr);
         insert(sp,&defsyms);
         --global_flag;
         return getline(incldepth == 0);
 }
 
-

@@ -1,4 +1,4 @@
-/*
+ /*
  *	68000 C compiler
  *
  *	Copyright 1984, 1985, 1986 Matthew Brandt.
@@ -42,4 +42,4 @@ extern int              global_flag;
 extern TABLE            defsyms;
 extern int              save_mask;      /* register save mask */
 
-
+/*#include                "proto.h"                 /* function definitions */

@@ -1,4 +1,5 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "string.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +15,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -36,7 +38,7 @@ int     i,j;
 char    *litlate(s)
 char    *s;
 {       char    *p;
-        p = xalloc(strlen(s) + 1);
+        p =(char *)xalloc(strlen(s) + 1);
         strcpy(p,s);
         return p;
 }
@@ -44,16 +46,16 @@ char    *s;
 TYP     *maketype(bt,siz)
 int     bt, siz;
 {       TYP     *tp;
-        tp = xalloc(sizeof(TYP));
+        tp =(TYP *)xalloc(sizeof(TYP));
         tp->val_flag = 0;
-        tp->size = siz;
+        tp->size =(long)siz;
         tp->type = bt;
         tp->sname = 0;
         tp->lst.head = 0;
         return tp;
 }
 
-int     decl(table)
+     decl(table)
 TABLE   *table;
 {       switch (lastst) {
                 case kw_char:
@@ -100,7 +102,7 @@ TABLE   *table;
                 }
 }
 
-decl1()
+ decl1()
 {       TYP     *temp1, *temp2, *temp3, *temp4;
         switch (lastst) {
                 case id:
@@ -141,7 +143,7 @@ decl1()
                 }
 }
 
-decl2()
+ decl2()
 {       TYP     *temp1;
         switch (lastst) {
                 case openbr:
@@ -158,7 +160,7 @@ decl2()
                                 needpunc(closebr);
                                 }
                         else {
-                                temp1->size = intexpr();
+                                temp1->size =(long)intexpr();
                                 needpunc(closebr);
                                 }
                         head = temp1;
@@ -230,7 +232,7 @@ int		       ztype;
                 declid = 0;
                 decl1();
                 if( declid != 0) {      /* otherwise just struct tag... */
-                        sp = xalloc(sizeof(SYM));
+                        sp =(SYM *)xalloc(sizeof(SYM));
                         sp->name = declid;
                         sp->storage_class = al;
                         while( (ilc + nbytes) % alignment(head)) {
@@ -243,23 +245,23 @@ int		       ztype;
                                 ++nbytes;
                                 }
                         if( al == sc_static)
-                                sp->value.i = nextlabel++;
+                                sp->value.i =(long) nextlabel++;
                         else if( ztype == bt_union)
-                                sp->value.i = ilc;
+                                sp->value.i =(long) ilc;
                         else if( al != sc_auto )
-                                sp->value.i = ilc + nbytes;
+                                sp->value.i =(long)( ilc + nbytes);
                         else
                                 sp->value.i = -(ilc + nbytes + head->size);
                         sp->tp = head;
-                        if( sp->tp->type == bt_func && 
+                        if( sp->tp->type == bt_func &&
                                 sp->storage_class == sc_global )
                                 sp->storage_class = sc_external;
                         if(ztype == bt_union)
-                                nbytes = imax(nbytes,sp->tp->size);
+                                nbytes = imax(nbytes,(int)(sp->tp->size));
                         else if(al != sc_external)
-                                nbytes += sp->tp->size;
+                                nbytes +=(int)sp->tp->size;
                         if( sp->tp->type == bt_ifunc &&
-                                (sp1 = search(sp->name,table->head)) != 0 &&
+                                (sp1 =(SYM *)search(sp->name,table->head)) != 0 &&
                                 sp1->tp->type == bt_func )
                                 {
                                 sp1->tp = sp->tp;
@@ -269,7 +271,8 @@ int		       ztype;
                                 }
                         else
                                 insert(sp,table);
-                        if( sp->tp->type == bt_ifunc) { /* function body follows */
+                        if( sp->tp->type == bt_ifunc) { /* function body follows
+ */
                                 funcbody(sp);
                                 return nbytes;
                                 }
@@ -294,15 +297,14 @@ int		       st;
                 st == openbr;
 }
 
-declenum(table)
+ declenum(table)
 TABLE   *table;
 {       SYM     *sp;
         TYP     *tp;
-        int     evalue;
         if( lastst == id) {
-                if((sp = search(lastid,tagtable.head)) == 0) {
-                        sp = xalloc(sizeof(SYM));
-                        sp->tp = xalloc(sizeof(TYP));
+                if((sp = (SYM *)search(lastid,tagtable.head)) == 0) {
+                        sp = (SYM *)xalloc(sizeof(SYM));
+                        sp->tp =(TYP *)xalloc(sizeof(TYP));
                         sp->tp->type = bt_enum;
                         sp->tp->size = 2;
                         sp->tp->lst.head = sp->tp->btp = 0;
@@ -323,7 +325,7 @@ TABLE   *table;
                 head = sp->tp;
                 }
         else    {
-                tp = xalloc(sizeof(tp));
+                tp =(TYP *)xalloc(sizeof(tp));
                 tp->type = bt_short;
                 if( lastst != begin)
                         error(ERR_INCOMPLETE);
@@ -335,14 +337,14 @@ TABLE   *table;
                 }
 }
 
-enumbody(table)
+ enumbody(table)
 TABLE   *table;
 {       int     evalue;
         SYM     *sp;
         evalue = 0;
         while(lastst == id) {
-                sp = xalloc(sizeof(SYM));
-                sp->value.i = evalue++;
+                sp = (SYM *)xalloc(sizeof(SYM));
+                sp->value.i =(long)evalue++;
                 sp->name = litlate(lastid);
                 sp->storage_class = sc_const;
                 sp->tp = &stdconst;
@@ -356,7 +358,7 @@ TABLE   *table;
         needpunc(end);
 }
 
-declstruct(ztype)
+ declstruct(ztype)
 /*
  *      declare a structure or union type. ztype should be either
  *      bt_struct or bt_union.
@@ -364,12 +366,11 @@ declstruct(ztype)
 int		       ztype;
 {       SYM     *sp;
         TYP     *tp;
-        int     slc;
         if(lastst == id) {
-                if((sp = search(lastid,tagtable.head)) == 0) {
-                        sp = xalloc(sizeof(SYM));
+                if((sp = (SYM *)search(lastid,tagtable.head)) == 0) {
+                        sp = (SYM *)xalloc(sizeof(SYM));
                         sp->name = litlate(lastid);
-                        sp->tp = xalloc(sizeof(TYP));
+                        sp->tp =(TYP *)xalloc(sizeof(TYP));
                         sp->tp->type = ztype;
                         sp->tp->lst.head = 0;
                         sp->storage_class = sc_type;
@@ -388,7 +389,7 @@ int		       ztype;
                 head = sp->tp;
                 }
         else    {
-                tp = xalloc(sizeof(TYP));
+                tp = (TYP *)xalloc(sizeof(TYP));
                 tp->type = ztype;
                 tp->sname = 0;
                 tp->lst.head = 0;
@@ -402,7 +403,7 @@ int		       ztype;
                 }
 }
 
-structbody(tp,ztype)
+ structbody(tp,ztype)
 TYP             *tp;
 int		       ztype;
 {       int     slc;
@@ -414,11 +415,11 @@ int		       ztype;
                 else
                         slc = imax(slc,declare(&tp->lst,sc_member,0,ztype));
                 }
-        tp->size = slc;
+        tp->size =(long)slc;
         getsym();
 }
 
-compile()
+ compile()
 /*
  *      main compiler routine. this routine parses all of the
  *      declarations using declare which will call funcbody as
@@ -432,9 +433,9 @@ compile()
         dumplits();
 }
 
-dodecl(defclass)
+ dodecl(defclass)
 int		       defclass;
-{       int     size;
+{
         for(;;) {
             switch(lastst) {
                 case kw_register:
@@ -464,7 +465,7 @@ do_decl:            if( defclass == sc_global)
                         if( defclass == sc_member)
                             error(ERR_ILLCLASS);
 						if( defclass == sc_auto )
-							lc_static += 
+							lc_static +=
 								declare(&lsyms,sc_static,lc_static,bt_struct);
 						else
 							lc_static +=
@@ -484,4 +485,3 @@ do_decl:            if( defclass == sc_global)
             }
 }
 
-

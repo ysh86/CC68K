@@ -1,4 +1,4 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,17 +14,23 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
  *		Box 920337
  *		Norcross, Ga 30092
  */
+/*      External declarations   */
+
+extern SYM          *makeint   ();
+
+
 
 /*      function compilation routines           */
 
-funcbody(sp)
+ funcbody(sp)
 /*
  *      funcbody starts with the current symbol being either
  *      the first parameter id or the begin for the local
@@ -34,13 +40,13 @@ funcbody(sp)
 SYM     *sp;
 {       char    *names[20];             /* 20 parameters maximum */
         int     nparms, poffset, i;
-        SYM     *sp1, *makeint();
+        SYM     *sp1;
         global_flag = 0;
         poffset = 8;            /* size of return block */
         nparms = 0;
         if(lastst == id) {              /* declare parameters */
                 while(lastst == id) {
-                        names[nparms++] = litlate(lastid);
+                        names[nparms++] =(char *) litlate(lastid);
                         getsym();
                         if( lastst == comma)
                                 getsym();
@@ -50,17 +56,19 @@ SYM     *sp;
                 needpunc(closepa);
                 dodecl(sc_member);      /* declare parameters */
                 for(i = 0;i < nparms;++i) {
-                        if( (sp1 = search(names[i],lsyms.head)) == 0)
+                        if( (sp1 =(SYM *)search(names[i],lsyms.head)) == 0)
                                 sp1 = makeint(names[i]);
 						if( sp1->tp->size < 4 )
 						{
-							sp1->value.i = poffset + (4 - sp1->tp->size);
+							sp1->value.i = poffset +
+ (4 - sp1->tp->size);
 							poffset += 4;
 						}
 						else
 						{
-							sp1->value.i = poffset;
-							poffset += sp1->tp->size;
+							sp1->value.i =(long)poffset;
+							poffset +=(int)( sp1->tp->size)
+;
 						}
                         sp1->storage_class = sc_auto;
 					}
@@ -80,8 +88,8 @@ SYM     *makeint(name)
 char    *name;
 {       SYM     *sp;
         TYP     *tp;
-        sp = xalloc(sizeof(SYM));
-        tp = xalloc(sizeof(TYP));
+        sp =(SYM *)xalloc(sizeof(SYM));
+        tp = (TYP *)xalloc(sizeof(TYP));
         tp->type = bt_long;
         tp->size = 4;
         tp->btp = tp->lst.head = 0;
@@ -93,7 +101,7 @@ char    *name;
         return sp;
 }
 
-check_table(head)
+ check_table(head)
 SYM     *head;
 {       while( head != 0 ) {
                 if( head->storage_class == sc_ulabel )
@@ -102,7 +110,7 @@ SYM     *head;
                 }
 }
 
-funcbottom()
+ funcbottom()
 {       nl();
         check_table(lsyms.head);
         lc_auto = 0;
@@ -112,7 +120,7 @@ funcbottom()
         release_local();        /* release local symbols */
 }
 
-block()
+ block()
 {       needpunc(begin);
         dodecl(sc_auto);
 		cseg();
@@ -120,4 +128,3 @@ block()
         flush_peep();
 }
 
-

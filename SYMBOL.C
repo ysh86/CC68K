@@ -1,4 +1,5 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "string.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +15,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -41,7 +43,7 @@ char    *na;
         return sp;
 }
 
-insert(sp,table)
+ insert(sp,table)
 SYM     *sp;
 TABLE   *table;
 {       if( search(sp->name,table->head) == 0) {
@@ -56,4 +58,3 @@ TABLE   *table;
         else
                 error(ERR_DUPSYM);
 }
-

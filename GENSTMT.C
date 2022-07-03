@@ -1,4 +1,4 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +14,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -35,7 +36,7 @@ struct amode    *makedreg(r)
  */
 int     r;
 {       struct amode    *ap;
-        ap = xalloc(sizeof(struct amode));
+        ap =(struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_dreg;
         ap->preg = r;
         return ap;
@@ -47,7 +48,7 @@ struct amode    *makeareg(r)
  */
 int     r;
 {       struct amode    *ap;
-        ap = xalloc(sizeof(struct amode));
+        ap =(struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_areg;
         ap->preg = r;
         return ap;
@@ -59,9 +60,9 @@ struct amode    *make_mask(mask)
  */
 int     mask;
 {       struct amode    *ap;
-        ap = xalloc(sizeof(struct amode));
+        ap = (struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_mask;
-        ap->offset = mask;
+        ap->offset =(struct enode *) mask;
         return ap;
 }
 
@@ -69,8 +70,8 @@ struct amode    *make_direct(i)
 /*
  *      make a direct reference to an immediate value.
  */
-int     i;
-{       return make_offset(makenode(en_icon,i,0));
+struct enode *i;
+{       return make_offset(makenode(en_icon,i,(struct enode *)0));
 }
 
 struct amode    *make_strlab(s)
@@ -79,13 +80,14 @@ struct amode    *make_strlab(s)
  */
 char    *s;
 {       struct amode    *ap;
-        ap = xalloc(sizeof(struct amode));
+        ap = (struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_direct;
-        ap->offset = makenode(en_nacon,s,0);
+        ap->offset =(struct enode *) makenode(en_nacon,(struct enode *)s,
+                                                       (struct enode *)0);
         return ap;
 }
 
-genwhile(stmt)
+ genwhile(stmt)
 /*
  *      generate code to evaluate a while statement.
  */
@@ -102,7 +104,7 @@ struct snode    *stmt;
                 initstack();
                 falsejp(stmt->exp,breaklab);
                 genstmt(stmt->s1);
-                gen_code(op_bra,0,make_label(contlab),0);
+                gen_code(op_bra,0,make_label(contlab),(struct amode *)0);
                 gen_label(breaklab);
                 breaklab = lab2;        /* restore old break label */
                 }
@@ -114,7 +116,7 @@ struct snode    *stmt;
         contlab = lab1;         /* restore old continue label */
 }
 
-gen_for(stmt)
+ gen_for(stmt)
 /*
  *      generate code to evaluate a for loop
  */
@@ -127,8 +129,8 @@ struct snode    *stmt;
         contlab = loop_label;
         initstack();
         if( stmt->label != 0 )
-                gen_expr(stmt->label,F_ALL | F_NOVALUE
-                        ,natural_size(stmt->label));
+                gen_expr((struct enode *)(stmt->label),F_ALL | F_NOVALUE
+                        ,natural_size((struct enode *)stmt->label));
         gen_label(loop_label);
         initstack();
         if( stmt->exp != 0 )
@@ -140,14 +142,14 @@ struct snode    *stmt;
 		}
         initstack();
         if( stmt->s2 != 0 )
-                gen_expr(stmt->s2,F_ALL | F_NOVALUE,natural_size(stmt->s2));
-        gen_code(op_bra,0,make_label(loop_label),0);
+                gen_expr((struct enode *)stmt->s2,F_ALL | F_NOVALUE,natural_size((struct enode *)stmt->s2));
+        gen_code(op_bra,0,make_label(loop_label),(struct amode *)0);
         breaklab = old_break;
         contlab = old_cont;
         gen_label(exit_label);
 }
 
-genif(stmt)
+ genif(stmt)
 /*
  *      generate code to evaluate an if statement.
  */
@@ -166,7 +168,7 @@ struct snode    *stmt;
         genstmt(stmt->s1);
         if( stmt->s2 != 0 )             /* else part exists */
                 {
-                gen_code(op_bra,0,make_label(lab2),0);
+                gen_code(op_bra,0,make_label(lab2),(struct amode *)0);
                 gen_label(lab1);
                 if( stmt->s2 == 0 || stmt->s2->next == 0 )
                         breaklab = oldbreak;
@@ -180,7 +182,7 @@ struct snode    *stmt;
         breaklab = oldbreak;
 }
 
-gendo(stmt)
+ gendo(stmt)
 /*
  *      generate code for a do - while loop.
  */
@@ -208,27 +210,27 @@ struct snode    *stmt;
         contlab = oldcont;
 }
 
-call_library(lib_name)
+ call_library(lib_name)
 /*
  *      generate a call to a library routine.
  */
 char    *lib_name;
 {       SYM     *sp;
-        sp = gsearch(lib_name);
+        sp = (SYM *)gsearch(lib_name);
         if( sp == 0 )
                 {
                 ++global_flag;
-                sp = xalloc(sizeof(SYM));
+                sp =(SYM *) xalloc(sizeof(SYM));
                 sp->tp = &stdfunc;
                 sp->name = lib_name;
                 sp->storage_class = sc_external;
                 insert(sp,&gsyms);
                 --global_flag;
                 }
-        gen_code(op_jsr,0,make_strlab(lib_name),0);
+        gen_code(op_jsr,0,make_strlab(lib_name),(struct amode *)0);
 }
 
-genswitch(stmt)
+ genswitch(stmt)
 /*
  *      generate a linear search switch statement.
  */
@@ -239,35 +241,37 @@ struct snode    *stmt;
         curlab = nextlabel++;
         defcase = 0;
         initstack();
-        ap = gen_expr(stmt->exp,F_DREG | F_VOL,4);
+        ap =(struct amode *) gen_expr(stmt->exp,F_DREG | F_VOL,4);
         if( ap->preg != 0 )
                 gen_code(op_move,4,ap,makedreg(0));
         stmt = stmt->s1;
-        call_library("c%switch");
+	call_library("_C_SWITCH");
         while( stmt != 0 )
                 {
                 if( stmt->s2 )          /* default case ? */
                         {
-                        stmt->label = curlab;
+                        stmt->label =(int *) curlab;
                         defcase = stmt;
                         }
                 else
                         {
                         gen_code(op_dc,4,make_label(curlab),
-                                make_direct(stmt->label));
-                        stmt->label = curlab;
+                                make_direct((struct enode *)stmt->label));
+                        stmt->label =(int *) curlab;
                         }
                 if( stmt->s1 != 0 && stmt->next != 0 )
                         curlab = nextlabel++;
                 stmt = stmt->next;
                 }
         if( defcase == 0 )
-                gen_code(op_dc,4,make_direct(0),make_label(breaklab));
+                gen_code(op_dc,4,make_direct((struct enode *)0),
+                                 make_label(breaklab));
         else
-                gen_code(op_dc,4,make_direct(0),make_label(defcase->label));
+                gen_code(op_dc,4,make_direct((struct enode *)0),
+                                 make_label((int)defcase->label));
 }
 
-gencase(stmt)
+ gencase(stmt)
 /*
  *      generate all cases for a switch statement.
  */
@@ -276,16 +280,16 @@ struct snode    *stmt;
                 {
                 if( stmt->s1 != 0 )
                         {
-                        gen_label(stmt->label);
+                        gen_label((int)stmt->label);
                         genstmt(stmt->s1);
                         }
                 else if( stmt->next == 0 )
-                        gen_label(stmt->label);
+                        gen_label((int)stmt->label);
                 stmt = stmt->next;
                 }
 }
 
-genxswitch(stmt)
+ genxswitch(stmt)
 /*
  *      analyze and generate best switch statement.
  */
@@ -299,7 +303,7 @@ struct snode    *stmt;
         breaklab = oldbreak;
 }
 
-genreturn(stmt)
+ genreturn(stmt)
 /*
  *      generate a return statement.
  */
@@ -308,7 +312,7 @@ struct snode    *stmt;
         if( stmt != 0 && stmt->exp != 0 )
                 {
                 initstack();
-                ap = gen_expr(stmt->exp,F_ALL,4);
+                ap =(struct amode *) gen_expr(stmt->exp,F_ALL,4);
                 if( ap->mode != am_dreg || ap->preg != 0 )
                         gen_code(op_move,4,ap,makedreg(0));
                 }
@@ -318,14 +322,14 @@ struct snode    *stmt;
                 gen_label(retlab);
                 if( save_mask != 0 )
                         gen_code(op_movem,4,pop,make_mask(save_mask));
-                gen_code(op_unlk,0,makeareg(6),0);
-                gen_code(op_rts,0,0,0);
+                gen_code(op_unlk,0,makeareg(6),(struct amode *)0);
+                gen_code(op_rts,0,(struct amode *)0,(struct amode *)0);
                 }
         else
-                gen_code(op_bra,0,make_label(retlab),0);
+                gen_code(op_bra,0,make_label(retlab),(struct amode *)0);
 }
 
-genstmt(stmt)
+ genstmt(stmt)
 /*
  *      genstmt will generate a statement and follow the next pointer
  *      until the block is generated.
@@ -336,10 +340,11 @@ struct snode    *stmt;
                 switch( stmt->stype )
                         {
                         case st_label:
-                                gen_label(stmt->label);
+                                gen_label((int)stmt->label);
                                 break;
                         case st_goto:
-                                gen_code(op_bra,0,make_label(stmt->label),0);
+                                gen_code(op_bra,0,make_label((int)stmt->label),
+                                                   (struct amode *)0);
                                 break;
                         case st_expr:
                                 initstack();
@@ -359,10 +364,12 @@ struct snode    *stmt;
                                 gen_for(stmt);
                                 break;
                         case st_continue:
-                                gen_code(op_bra,0,make_label(contlab),0);
+                                gen_code(op_bra,0,make_label(contlab),
+                                                  (struct amode *)0);
                                 break;
                         case st_break:
-                                gen_code(op_bra,0,make_label(breaklab),0);
+                                gen_code(op_bra,0,make_label(breaklab),
+                                                  (struct amode *)0);
                                 break;
                         case st_switch:
                                 genxswitch(stmt);
@@ -375,7 +382,7 @@ struct snode    *stmt;
                 }
 }
 
-genfunc(stmt)
+ genfunc(stmt)
 /*
  *      generate a function body.
  */
@@ -386,7 +393,5 @@ struct snode    *stmt;
         gen_code(op_link,0,makeareg(6),make_immed(-lc_auto));
         opt1(stmt);
         genstmt(stmt);
-        genreturn(0);
+        genreturn((struct snode *)0);
 }
-
-

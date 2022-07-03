@@ -1,8 +1,10 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "string.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
 #include        "cglbdec.h"
+
 /*
  *	68000 C compiler
  *
@@ -13,7 +15,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -21,16 +24,16 @@
  *		Norcross, Ga 30092
  */
 
-doinit(sp)
+ doinit(sp)
 SYM     *sp;
 {       dseg();                 /* initialize into data segment */
         nl();                   /* start a new line in object */
         if(sp->storage_class == sc_static)
-                put_label(sp->value.i);
+                put_label((int)sp->value.i);
         else
                 gen_strlab(sp->name);
         if( lastst != assign)
-                genstorage(sp->tp->size);
+                genstorage((int)sp->tp->size);
         else    {
                 getsym();
                 inittype(sp->tp);
@@ -69,7 +72,7 @@ TYP     *tp;
         return nbytes;
 }
 
-initarray(tp)
+int initarray(tp)
 TYP     *tp;
 {       int     nbytes;
         char    *p;
@@ -96,15 +99,15 @@ TYP     *tp;
         else if( lastst != semicolon)
                 error(ERR_ILLINIT);
         if( nbytes < tp->size) {
-                genstorage( tp->size - nbytes);
-                nbytes = tp->size;
+                genstorage((int) (tp->size - nbytes));
+                nbytes = (int)tp->size;
                 }
         else if( tp->size != 0 && nbytes > tp->size)
                 error(ERR_INITSIZE);    /* too many initializers */
         return nbytes;
 }
 
-initstruct(tp)
+int initstruct(tp)
 TYP     *tp;
 {       SYM     *sp;
         int     nbytes;
@@ -124,33 +127,33 @@ TYP     *tp;
                 sp = sp->next;
                 }
         if( nbytes < tp->size)
-                genstorage( tp->size - nbytes);
+                genstorage((int)( tp->size - nbytes));
         needpunc(end);
         return tp->size;
 }
 
-initchar()
+int initchar()
 {       genbyte(intexpr());
         return 1;
 }
 
-initshort()
+int initshort()
 {       genword(intexpr());
         return 2;
 }
 
-initlong()
+int initlong()
 {       genlong(intexpr());
         return 4;
 }
 
-initpointer()
+int initpointer()
 {       SYM     *sp;
         if(lastst == and) {     /* address of a variable */
                 getsym();
                 if( lastst != id)
                         error(ERR_IDEXPECT);
-                else if( (sp = gsearch(lastid)) == 0)
+                else if( (sp =(SYM *) gsearch(lastid)) == 0)
                         error(ERR_UNDEFINED);
                 else    {
                         getsym();
@@ -172,7 +175,7 @@ initpointer()
         return 4;       /* pointers are 4 bytes long */
 }
 
-endinit()
+ endinit()
 {       if( lastst != comma && lastst != semicolon && lastst != end) {
                 error(ERR_PUNCT);
                 while( lastst != comma && lastst != semicolon && lastst != end)
@@ -180,4 +183,3 @@ endinit()
                 }
 }
 
-

@@ -1,4 +1,5 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "string.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -21,8 +22,8 @@
  *		Box 920337
  *		Norcross, Ga 30092
  */
- 
-put_sc(scl)
+
+ put_sc(scl)
 int     scl;
 {       switch(scl) {
                 case sc_static:
@@ -55,7 +56,7 @@ int     scl;
                 }
 }
 
-put_ty(tp)
+ put_ty(tp)
 TYP     *tp;
 {       if(tp == 0)
                 return;
@@ -106,17 +107,26 @@ ucont:                  if(tp->sname == 0)
                 }
 }
 
-list_var(sp,i)
+ list_var(sp,i)
 SYM     *sp;
 int     i;
 {       int     j;
+	char    su[80];
         for(j = i; j; --j)
                 fprintf(list,"    ");
         fprintf(list,"%-10s =%06x ",sp->name,sp->value.u);
         if( sp->storage_class == sc_external)
-                fprintf(output,"\tglobal\t%s\n",sp->name);
+        {
+                strcpy(su,sp->name);
+                upcase(su);		/* Convert to upper case */
+                fprintf(output,"\tXREF\t%s\n",su);
+	}
         else if( sp->storage_class == sc_global )
-                fprintf(output,"\tglobal\t%s\n",sp->name);
+        {
+                strcpy(su,sp->name);
+                upcase(su);		/* convert to upper case */
+                fprintf(output,"\tXDEF\t%s\n",su);
+        }
         put_sc(sp->storage_class);
         put_ty(sp->tp);
         fprintf(list,"\n");
@@ -127,7 +137,7 @@ int     i;
                 list_table(&(sp->tp->lst),i+1);
 }
 
-list_table(t,i)
+ list_table(t,i)
 TABLE   *t;
 int     i;
 {       SYM     *sp;
@@ -138,5 +148,3 @@ int     i;
                 }
 }
 
-
-

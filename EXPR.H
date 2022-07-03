@@ -1,4 +1,4 @@
-/*
+ /*
  *	68000 C compiler
  *
  *	Copyright 1984, 1985, 1986 Matthew Brandt.
@@ -66,4 +66,3 @@ struct cse {
         int             reg;            /* allocated register */
         };
 
-

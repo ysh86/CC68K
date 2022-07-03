@@ -1,4 +1,4 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -22,13 +22,13 @@
  *		Norcross, Ga 30092
  */
 
-intexpr()       /* simple integer value */
+int intexpr()       /* simple integer value */
 {       int     temp;
         SYM     *sp;
         if(lastst == id) {
-                sp = search(lastid,lsyms.head);
+                sp =(SYM *) search(lastid,lsyms.head);
                 if( sp == NULL)
-                        sp = search(lastid,gsyms.head);
+                        sp =(SYM *) search(lastid,gsyms.head);
                 if(sp == NULL) {
                         error(ERR_UNDEFINED);
                         getsym();
@@ -43,7 +43,7 @@ intexpr()       /* simple integer value */
                 return sp->value.i;
                 }
         else if(lastst == iconst) {
-                temp = ival;
+                temp =(int)ival;
                 getsym();
                 return temp;
                 }
@@ -51,5 +51,3 @@ intexpr()       /* simple integer value */
         error(ERR_SYNTAX);
         return 0;
 }
-
-

@@ -1,4 +1,4 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +14,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -26,10 +27,10 @@ static int      errno[80];
 static int      numerrs;
 static char     inline[132];
 int             total_errors = 0;
-char            *lptr;          /* shared with preproc */
-FILE            *inclfile[10];  /* shared with preproc */
-int             inclline[10];   /* shared with preproc */
-int             incldepth;      /* shared with preproc */
+extern char            *lptr;          /* shared with preproc */
+extern FILE            *inclfile[10];  /* shared with preproc */
+extern int             inclline[10];   /* shared with preproc */
+extern int             incldepth;      /* shared with preproc */
 char            *linstack[20];  /* stack for substitutions */
 char            chstack[20];    /* place to save lastch */
 int             lstackptr = 0;  /* substitution stack pointer */
@@ -39,6 +40,7 @@ char    c;
 {       return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
                 (c >= '0' && c <= '9');
 }
+
 
 int     isidch(c)
 char    c;
@@ -50,12 +52,13 @@ char    c;
 {       return c == ' ' || c == '\t' || c == '\n';
 }
 
+
 int     isdigit(c)
 char    c;
 {       return (c >= '0' && c <= '9');
 }
 
-initsym()
+ initsym()
 {       lptr = inline;
         inline[0] = 0;
         numerrs = 0;
@@ -84,7 +87,7 @@ int     listflag;
                 return 1;
         lptr = inline;
         if(inline[0] == '#')
-                return preprocess();
+              /*  return */  preprocess();
         return 0;
 }
 
@@ -92,10 +95,10 @@ int     listflag;
  *      getch - basic get character routine.
  */
 int     getch()
-{       while( (lastch = *lptr++) == '\0') {
+{       while( (lastch =(int) *lptr++) == '\0') {
                 if( lstackptr > 0 ) {
                         lptr = linstack[--lstackptr];
-                        lastch = chstack[lstackptr];
+                        lastch =(int) chstack[lstackptr];
                         return lastch;
                         }
                 if(getline(incldepth == 0))
@@ -103,11 +106,11 @@ int     getch()
                 }
         return lastch;
 }
- 
+
 /*
  *      error - print error information
  */
-error(n)
+ error(n)
 int     n;
 {       errno[numerrs++] = n;
         ++total_errors;
@@ -120,7 +123,7 @@ int     n;
  *      that doesn't start with a numeric character.
  *      this set INCLUDES keywords.
  */
-int     getid()
+     getid()
 {       register int    i;
         i = 0;
         while(isidch(lastch)) {
@@ -131,7 +134,7 @@ int     getid()
         lastid[i] = '\0';
         lastst = id;
 }
- 
+
 /*
  *      getsch - get a character in a quoted string.
  *
@@ -150,7 +153,7 @@ int     getsch()        /* return an in-quote character */
         getch();        /* get an escaped character */
         if(isdigit(lastch)) {
                 i = 0;
-                for(i = 0;j < 3;++j) {
+                for(j = 0;j < 3;++j) {
                         if(lastch <= '7' && lastch >= '0')
                                 i = (i << 3) + lastch - '0';
                         else
@@ -190,11 +193,12 @@ char    c;
                 return c - 'A' + 10;
         return -1;
 }
- 
+
 /*
  *      getbase - get an integer in any base.
  */
-getbase(b)
+ getbase(b)
+int b;
 {       register int    i, j;
         i = 0;
         while(isalnum(lastch)) {
@@ -204,14 +208,14 @@ getbase(b)
                         }
                 else break;
                 }
-        ival = i;
+        ival =(long) i;
         lastst = iconst;
 }
- 
+
 /*
  *      getfrac - get fraction part of a floating number.
  */
-getfrac()
+ getfrac()
 {       double  frmul;
         frmul = 0.1;
         while(isdigit(lastch)) {
@@ -220,7 +224,7 @@ getfrac()
                 frmul *= 0.1;
                 }
 }
- 
+
 /*
  *      getexp - get exponent part of floating number.
  *
@@ -228,11 +232,11 @@ getfrac()
  *      exponents are limited to +/-255 but most hardware
  *      won't support more anyway.
  */
-getexp()
+ getexp()
 {       double  expo, exmul;
         expo = 1.0;
         if(lastst != rconst)
-                rval = ival;
+                rval =(0.0)+ ival;
         if(lastch = '-') {
                 exmul = 0.1;
                 getch();
@@ -247,15 +251,15 @@ getexp()
                         expo *= exmul;
         rval *= expo;
 }
- 
+
 /*
  *      getnum - get a number from input.
  *
  *      getnum handles all of the numeric input. it accepts
  *      decimal, octal, hexidecimal, and floating point numbers.
  */
-getnum()
-{       register int    i, j, k;
+ getnum()
+{       register int    i;
         i = 0;
         if(lastch == '0') {
                 getch();
@@ -269,7 +273,7 @@ getnum()
                 getbase(10);
                 if(lastch == '.') {
                         getch();
-                        rval = ival;    /* float the integer part */
+                        rval =(0.0)+ ival;    /* float the integer part */
                         getfrac();      /* add the fractional part */
                         lastst = rconst;
                         }
@@ -279,7 +283,7 @@ getnum()
                         }
                 }
 }
- 
+
 /*
  *      getsym - get next symbol from input stream.
  *
@@ -295,9 +299,8 @@ getnum()
  *      rval:           last real constant read.
  *
  *      getsym should be called for all your input needs...
- */
-int     getsym()
-{       register int    i, j, k;
+ */     getsym()
+{       register int    i, j;
         SYM             *sp;
 restart:        /* we come back here after comments */
         while(isspace(lastch))
@@ -308,7 +311,7 @@ restart:        /* we come back here after comments */
                 getnum();
         else if(isidch(lastch)) {
                 getid();
-                if( (sp = search(lastid,defsyms.head)) != 0 ) {
+                if( (sp =(SYM *) search(lastid,defsyms.head)) != 0 ) {
                         linstack[lstackptr] = lptr;
                         chstack[lstackptr++] = lastch;
                         lptr = sp->value.s;
@@ -429,7 +432,7 @@ restart:        /* we come back here after comments */
                         break;
                 case '\'':
                         getch();
-                        ival = getsch();        /* get a string char */
+                        ival =(long) getsch();        /* get a string char */
                         if(lastch != '\'')
                                 error(ERR_SYNTAX);
                         else
@@ -544,12 +547,10 @@ restart:        /* we come back here after comments */
                 searchkw();
 }
 
-needpunc(p)
+ needpunc(p)
 enum e_sym      p;
 {       if( lastst == p)
                 getsym();
         else
                 error(ERR_PUNCT);
 }
-
-

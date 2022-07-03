@@ -1,4 +1,5 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "malloc.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +15,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -39,6 +41,7 @@ char    *xalloc(siz)
 int     siz;
 {       struct blk      *bp;
         char            *rv;
+        int             exit();
 	if( siz & 1 )		/* if odd size */
 		siz += 1;	/* make it even */
         if( global_flag ) {
@@ -49,7 +52,8 @@ int     siz;
                         return rv;
                         }
                 else    {
-                        bp = calloc(1,sizeof(struct blk) + 2047);
+                        bp =(struct blk *)(calloc((unsigned)1,
+                                                   (unsigned)(sizeof(struct blk) + 2047)));
 			if( bp == NULL )
 			{
 				printf(" not enough memory.\n");
@@ -70,7 +74,8 @@ int     siz;
                         return rv;
                         }
                 else    {
-                        bp = calloc(1,sizeof(struct blk) + 2047);
+                        bp =(struct blk *)(calloc((unsigned)1,
+                                                  (unsigned)(sizeof(struct blk) + 2047)));
 			if( bp == NULL )
 			{
 				printf(" not enough local memory.\n");
@@ -85,14 +90,14 @@ int     siz;
                 }
 }
 
-release_local()
+ release_local()
 {       struct blk      *bp1, *bp2;
         int             blkcnt;
         blkcnt = 0;
         bp1 = locblk;
         while( bp1 != 0 ) {
                 bp2 = bp1->next;
-                free( bp1 );
+                free((char *)bp1 );
                 ++blkcnt;
                 bp1 = bp2;
                 }
@@ -102,14 +107,14 @@ release_local()
         printf(" releasing %d bytes local tables.\n",blkcnt * 2048);
 }
 
-release_global()
+ release_global()
 {       struct blk      *bp1, *bp2;
         int             blkcnt;
         bp1 = glbblk;
         blkcnt = 0;
         while( bp1 != 0 ) {
                 bp2 = bp1->next;
-                free(bp1);
+                free((char *)bp1);
                 ++blkcnt;
                 bp1 = bp2;
                 }
@@ -120,4 +125,3 @@ release_global()
         strtab = 0;             /* clear literal table */
 }
 
-

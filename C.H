@@ -1,4 +1,4 @@
-/*
+ /*
  *	68000 C compiler
  *
  *	Copyright 1984, 1985, 1986 Matthew Brandt.
@@ -8,7 +8,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -117,4 +118,3 @@ struct sym {
 #define AL_DOUBLE       2
 #define AL_STRUCT       2
 
-

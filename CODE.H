@@ -1,4 +1,4 @@
-/*
+ /*
  *      code structure definitions.
  */
 
@@ -23,4 +23,3 @@ struct inst {
         char            sm0, sm1, dm;
         union aval      sv0, sv1, dv;
         };
-

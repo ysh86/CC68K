@@ -1,4 +1,4 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +14,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -24,6 +25,11 @@
 
 extern struct amode     push[], pop[];
 
+/*  External function declarations:             */
+
+extern struct amode *gen_expr   ();
+extern struct amode *makedreg   ();
+extern struct amode *makeareg   ();
 /*
  *      this module will step through the parse tree and find all
  *      optimizable expressions. at present these expressions are
@@ -44,7 +50,7 @@ extern struct amode     push[], pop[];
 
 static struct cse       *olist;         /* list of optimizable expressions */
 
-equalnode(node1, node2)
+int equalnode(node1, node2)
 /*
  *      equalnode will return 1 if the expressions pointed to by
  *      node1 and node2 are equivalent.
@@ -88,14 +94,14 @@ struct enode    *node;
 {       struct enode    *temp;
         if( node == 0 )
                 return 0;
-        temp = xalloc(sizeof(struct enode));
+        temp = (struct enode *)xalloc(sizeof(struct enode));
         temp->nodetype = node->nodetype;
         temp->v.p[0] = node->v.p[0];
         temp->v.p[1] = node->v.p[1];
         return temp;
 }
 
-enternode(node,duse)
+struct cse *enternode(node,duse)
 /*
  *      enternode will enter a reference to an expression node into the
  *      common expression table. duse is a flag indicating whether or not
@@ -105,7 +111,7 @@ struct enode    *node;
 int             duse;
 {       struct cse      *csp;
         if( (csp = searchnode(node)) == 0 ) {   /* add to tree */
-                csp = xalloc(sizeof(struct cse));
+                csp =(struct cse *)xalloc(sizeof(struct cse));
                 csp->next = olist;
                 csp->uses = 1;
                 csp->duses = (duse != 0);
@@ -140,7 +146,7 @@ struct enode    *node;
         return 0;
 }
 
-scanexpr(node,duse)
+     scanexpr(node,duse)
 /*
  *      scanexpr will scan the expression pointed to by node for optimizable
  *      subexpressions. when an optimizable expression is found it is entered
@@ -149,8 +155,8 @@ scanexpr(node,duse)
  *      set if the expression will be dereferenced.
  */
 struct enode    *node;
+int    duse;
 {       struct cse      *csp, *csp1;
-        int             n;
         if( node == 0 )
                 return;
         switch( node->nodetype ) {
@@ -212,54 +218,54 @@ struct enode    *node;
                 }
 }
 
-scan(block)
+     scan(blk)
 /*
  *      scan will gather all optimizable expressions into the expression
  *      list for a block of statements.
  */
-struct snode    *block;
-{       while( block != 0 ) {
-                switch( block->stype ) {
+struct snode    *blk;
+{       while( blk != 0 ) {
+                switch( blk->stype ) {
                         case st_return:
                         case st_expr:
-                                opt4(&block->exp);
-                                scanexpr(block->exp,0);
+                                opt4(&blk->exp);
+                                scanexpr(blk->exp,0);
                                 break;
                         case st_while:
                         case st_do:
-                                opt4(&block->exp);
-                                scanexpr(block->exp,0);
-                                scan(block->s1);
+                                opt4(&blk->exp);
+                                scanexpr(blk->exp,0);
+                                scan(blk->s1);
                                 break;
                         case st_for:
-                                opt4(&block->label);
-                                scanexpr(block->label,0);
-                                opt4(&block->exp);
-                                scanexpr(block->exp,0);
-                                scan(block->s1);
-                                opt4(&block->s2);
-                                scanexpr(block->s2,0);
+                                opt4((struct enode **)&blk->label);
+                                scanexpr((struct enode *)blk->label,0);
+                                opt4(&blk->exp);
+                                scanexpr(blk->exp,0);
+                                scan(blk->s1);
+                                opt4((struct enode **)&blk->s2);
+                                scanexpr((struct enode *)blk->s2,0);
                                 break;
                         case st_if:
-                                opt4(&block->exp);
-                                scanexpr(block->exp,0);
-                                scan(block->s1);
-                                scan(block->s2);
+                                opt4(&blk->exp);
+                                scanexpr(blk->exp,0);
+                                scan(blk->s1);
+                                scan(blk->s2);
                                 break;
                         case st_switch:
-                                opt4(&block->exp);
-                                scanexpr(block->exp,0);
-                                scan(block->s1);
+                                opt4(&blk->exp);
+                                scanexpr(blk->exp,0);
+                                scan(blk->s1);
                                 break;
                         case st_case:
-                                scan(block->s1);
+                                scan(blk->s1);
                                 break;
                         }
-                block = block->next;
+                blk = blk->next;
                 }
 }
 
-exchange(c1)
+     exchange(c1)
 /*
  *      exchange will exchange the order of two expression entries
  *      following c1 in the linked list.
@@ -286,38 +292,38 @@ struct cse      *csp;
         return csp->uses;
 }
 
-int     bsort(list)
+int     bsort(lst)
 /*
  *      bsort implements a bubble sort on the expression list.
  */
-struct cse      **list;
+struct cse      **lst;
 {       struct cse      *csp1, *csp2;
         int             i;
-        csp1 = *list;
+        csp1 = *lst;
         if( csp1 == 0 || csp1->next == 0 )
                 return 0;
         i = bsort( &(csp1->next));
         csp2 = csp1->next;
         if( desire(csp1) < desire(csp2) ) {
-                exchange(list);
+                exchange(lst);
                 return 1;
                 }
         return 0;
 }
 
-allocate()
+     allocate()
 /*
  *      allocate will allocate registers for the expressions that have
  *      a high enough desirability.
  */
 {       struct cse      *csp;
         struct enode    *exptr;
-        int             datareg, addreg, mask, rmask, i;
+        int             datareg, addreg, mask, rmask;
         struct amode    *ap, *ap2;
         datareg = 3;
         addreg = 10;
         mask = 0;
-		rmask = 0;
+	rmask = 0;
         while( bsort(&olist) );         /* sort the expression list */
         csp = olist;
         while( csp != 0 ) {
@@ -331,14 +337,14 @@ allocate()
                         csp->reg = -1;
                 if( csp->reg != -1 )
 				{
-						rmask = rmask | (1 << (15 - csp->reg));
+			rmask = rmask | (1 << (15 - csp->reg));
                         mask = mask | (1 << csp->reg);
 				}
                 csp = csp->next;
                 }
         if( mask != 0 )
                 gen_code(op_movem,4,make_mask(rmask),push);
-        save_mask = mask;
+        save_mask = rmask;
         csp = olist;
         while( csp != 0 ) {
                 if( csp->reg != -1 )
@@ -360,7 +366,7 @@ allocate()
                 }
 }
 
-repexpr(node)
+     repexpr(node)
 /*
  *      repexpr will replace all allocated references within an expression
  *      with tempref nodes.
@@ -422,47 +428,47 @@ struct enode    *node;
                 }
 }
 
-repcse(block)
+     repcse(blk)
 /*
  *      repcse will scan through a block of statements replacing the
  *      optimized expressions with their temporary references.
  */
-struct snode    *block;
-{       while( block != 0 ) {
-                switch( block->stype ) {
+struct snode    *blk;
+{       while( blk != 0 ) {
+                switch( blk->stype ) {
                         case st_return:
                         case st_expr:
-                                repexpr(block->exp);
+                                repexpr(blk->exp);
                                 break;
                         case st_while:
                         case st_do:
-                                repexpr(block->exp);
-                                repcse(block->s1);
+                                repexpr(blk->exp);
+                                repcse(blk->s1);
                                 break;
                         case st_for:
-                                repexpr(block->label);
-                                repexpr(block->exp);
-                                repcse(block->s1);
-                                repexpr(block->s2);
+                                repexpr((struct enode *)blk->label);
+                                repexpr(blk->exp);
+                                repcse(blk->s1);
+                                repexpr((struct enode *)blk->s2);
                                 break;
                         case st_if:
-                                repexpr(block->exp);
-                                repcse(block->s1);
-                                repcse(block->s2);
+                                repexpr(blk->exp);
+                                repcse(blk->s1);
+                                repcse(blk->s2);
                                 break;
                         case st_switch:
-                                repexpr(block->exp);
-                                repcse(block->s1);
+                                repexpr(blk->exp);
+                                repcse(blk->s1);
                                 break;
                         case st_case:
-                                repcse(block->s1);
+                                repcse(blk->s1);
                                 break;
                         }
-                block = block->next;
+                blk = blk->next;
                 }
 }
 
-opt1(block)
+     opt1(blk)
 /*
  *      opt1 is the externally callable optimization routine. it will
  *      collect and allocate common subexpressions and substitute the
@@ -470,12 +476,10 @@ opt1(block)
  *
  *		optimizer is currently turned off...
  */
-struct snode    *block;
+struct snode    *blk;
 {
 		olist = 0;
-        scan(block);            /* collect expressions */
+        scan(blk);            /* collect expressions */
         allocate();             /* allocate registers */
-        repcse(block);          /* replace allocated expressions */
+        repcse(blk);          /* replace allocated expressions */
 }
-
-

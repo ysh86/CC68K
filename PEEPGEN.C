@@ -1,8 +1,9 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
 #include        "cglbdec.h"
+
 
 /*
  *	68000 C compiler
@@ -33,7 +34,7 @@ struct amode    *ap;
 {       struct amode    *newap;
         if( ap == 0 )
                 return 0;
-        newap = xalloc(sizeof(struct amode));
+        newap =(struct amode *) xalloc(sizeof(struct amode));
         newap->mode = ap->mode;
         newap->preg = ap->preg;
         newap->sreg = ap->sreg;
@@ -43,14 +44,14 @@ struct amode    *ap;
         return newap;
 }
 
-gen_code(op,len,ap1,ap2)
+ gen_code(op,len,ap1,ap2)
 /*
  *      generate a code sequence into the peep list.
  */
 int             op, len;
 struct amode    *ap1, *ap2;
 {       struct ocode    *new;
-        new = xalloc(sizeof(struct ocode));
+        new =(struct ocode *) xalloc(sizeof(struct ocode));
         new->opcode = op;
         new->length = len;
         new->oper1 = copy_addr(ap1);
@@ -58,7 +59,7 @@ struct amode    *ap1, *ap2;
         add_peep(new);
 }
 
-add_peep(new)
+ add_peep(new)
 /*
  *      add the ocoderuction pointed to by new to the peep list.
  */
@@ -78,19 +79,19 @@ struct ocode    *new;
                 }
 }
 
-gen_label(labno)
+ gen_label(labno)
 /*
  *      add a compiler generated label to the peep list.
  */
 int     labno;
 {       struct ocode    *new;
-        new = xalloc(sizeof(struct ocode));
+        new =(struct ocode *) xalloc(sizeof(struct ocode));
         new->opcode = op_label;
-        new->oper1 = labno;
+        new->oper1 =(struct amode *) labno;
         add_peep(new);
 }
 
-flush_peep()
+ flush_peep()
 /*
  *      output all code and labels in the peep list.
  */
@@ -98,14 +99,14 @@ flush_peep()
         while( peep_head != 0 )
                 {
                 if( peep_head->opcode == op_label )
-                        put_label(peep_head->oper1);
+                        put_label((int)(peep_head->oper1));
                 else
                         put_ocode(peep_head);
                 peep_head = peep_head->fwd;
                 }
 }
 
-put_ocode(p)
+ put_ocode(p)
 /*
  *      output the instruction passed.
  */
@@ -113,7 +114,7 @@ struct ocode    *p;
 {       put_code(p->opcode,p->length,p->oper1,p->oper2);
 }
 
-peep_move(ip)
+ peep_move(ip)
 /*
  *      peephole optimization for move instructions.
  *      makes quick immediates when possible.
@@ -179,7 +180,7 @@ struct amode    *ap1, *ap2;
         return 0;
 }
 
-peep_add(ip)
+ peep_add(ip)
 /*
  *      peephole optimization for add instructions.
  *      makes quick immediates out of small constants.
@@ -207,7 +208,7 @@ struct ocode    *ip;
                 }
 }
 
-peep_sub(ip)
+ peep_sub(ip)
 /*
  *      peephole optimization for subtract instructions.
  *      makes quick immediates out of small constants.
@@ -235,7 +236,7 @@ struct ocode    *ip;
                 }
 }
 
-int     peep_cmp(ip)
+ peep_cmp(ip)
 /*
  *      peephole optimization for compare instructions.
  *      changes compare #0 to tst and if previous instruction
@@ -275,13 +276,14 @@ struct ocode    *ip;
                 }
 }
 
-peep_muldiv(ip,op)
+ peep_muldiv(ip,op)
 /*
  *      changes multiplies and divides by convienient values
  *      to shift operations. op should be either op_asl or
  *      op_asr (for divide).
  */
 struct ocode    *ip;
+int              op;
 {       int     shcnt;
         if( ip->oper1->mode != am_immed )
                 return;
@@ -309,7 +311,7 @@ struct ocode    *ip;
         ip->length = 4;
 }
 
-peep_uctran(ip)
+ peep_uctran(ip)
 /*
  *      peephole optimization for unconditional transfers.
  *      deletes instructions which have no path.
@@ -324,7 +326,8 @@ struct ocode    *ip;
                 }
 }
 
-opt3()
+
+ opt3()
 /*
  *      peephole optimizer. This routine calls the instruction
  *      specific optimization routines above for each instruction
@@ -359,5 +362,3 @@ opt3()
                 ip = ip->fwd;
                 }
 }
-
-

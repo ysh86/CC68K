@@ -1,4 +1,5 @@
-#include        <stdio.h>
+#include        "stdio.h"
+#include        "string.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +15,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -29,12 +31,13 @@ extern TABLE    tagtable;
 int		mainflag;
 extern int      total_errors;
 
-main(argc,argv)
+ main(argc,argv)
 int     argc;
 char    **argv;
-{       while(--argc) {
+{
+        while(--argc) {
                 if( **++argv == '-')
-                        options(*argv);
+                        options();
                 else if( openfiles(*argv)) {
                         lineno = 0;
                         initsym();
@@ -48,32 +51,34 @@ char    **argv;
                 }
 }
 
-int	options(s)
-char	*s;
-{	return 0;
+int	options()
+{
+  return 0;
 }
 
 int     openfiles(s)
 char    *s;
-{       char    *p;
-        int     ofl, lfl;
-        strcpy(infile,s);
+{
+/*        int     ofl; */
+
+	strcpy(infile,s);
         strcpy(listfile,s);
         strcpy(outfile,s);
         makename(listfile,".lis");
-        makename(outfile,".s");
+	makename(outfile,".s");
         if( (input = fopen(infile,"r")) == 0) {
                 printf(" cant open %s\n",infile);
                 return 0;
                 }
-        ofl = creat(outfile,-1);
+/*        ofl = creat(outfile,0);
         if( ofl < 0 )
                 {
                 printf(" cant create %s\n",outfile);
                 fclose(input);
                 return 0;
-                }
-        if( (output = fdopen(ofl,"w")) == 0) {
+		}
+*/
+	if( (output = fopen(outfile,"w")) == 0) {
                 printf(" cant open %s\n",outfile);
                 fclose(input);
                 return 0;
@@ -87,14 +92,14 @@ char    *s;
         return 1;
 }
 
-makename(s,e)
+ makename(s,e)
 char    *s, *e;
 {       while(*s != 0 && *s != '.')
                 ++s;
         while(*s++ = *e++);
 }
 
-summary()
+ summary()
 {       printf("\n -- %d errors found.",total_errors);
         fprintf(list,"\f\n *** global scope symbol table ***\n\n");
         list_table(&gsyms,0);
@@ -102,10 +107,9 @@ summary()
         list_table(&tagtable,0);
 }
 
-closefiles()
+ closefiles()
 {       fclose(input);
+        fprintf(output,"\tEND\t");	/* END directive to output file. */
         fclose(output);
         fclose(list);
 }
-
-

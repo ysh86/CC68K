@@ -1,4 +1,4 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -12,7 +12,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -31,9 +32,9 @@ int             nextlabel = 0;
 int             lastch = 0;
 int             lastst = 0;
 char            lastid[20] = "";
-char            laststr[MAX_STRLEN + 1] = "";
+char            laststr[MAX_STLP1] = "";
 long            ival = 0;
-double          rval = 0.0;
+double          rval;
 
 TABLE           gsyms = {0,0},
                 lsyms = {0,0};
@@ -46,4 +47,3 @@ int             global_flag = 1;
 TABLE           defsyms = {0,0};
 int             save_mask = 0;          /* register save mask */
 
-

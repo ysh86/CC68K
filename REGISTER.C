@@ -1,8 +1,9 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
 #include        "cglbdec.h"
+
 
 /*
  *	68000 C compiler
@@ -14,7 +15,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -38,32 +40,32 @@ int             next_data,
 int             max_data,
                 max_addr;
 
-gen_push(reg,rmode)
+ gen_push(reg,rmode)
 /*
  *      this routine generates code to push a register onto the stack
  */
 int     reg, rmode;
 {       struct amode    *ap1;
-        ap1 = xalloc(sizeof(struct amode));
+        ap1 =(struct amode *) xalloc(sizeof(struct amode));
         ap1->preg = reg;
         ap1->mode = rmode;
         gen_code(op_move,4,ap1,push);
 }
 
-gen_pop(reg,rmode)
+ gen_pop(reg,rmode)
 /*
  *      generate code to pop the primary register in ap from the
  *      stack.
  */
 int     reg, rmode;
 {       struct amode    *ap1;
-        ap1 = xalloc(sizeof(struct amode));
+        ap1 =(struct amode *) xalloc(sizeof(struct amode));
         ap1->preg = reg;
         ap1->mode = rmode;
         gen_code(op_move,4,pop,ap1);
 }
 
-initstack()
+ initstack()
 /*
  *      this routine should be called before each expression is
  *      evaluated to make sure the stack is balanced and all of
@@ -75,7 +77,7 @@ initstack()
         max_addr = 1;
 }
 
-validate(ap)
+ validate(ap)
 /*
  *      validate will make sure that if a register within an address
  *      mode has been pushed onto the stack that it is popped back
@@ -114,7 +116,7 @@ struct amode    *temp_data()
  *      addressing mode.
  */
 {       struct amode    *ap;
-        ap = xalloc(sizeof(struct amode));
+        ap =(struct amode *) xalloc(sizeof(struct amode));
         ap->mode = am_dreg;
         ap->preg = next_data % 3;
         ap->deep = next_data;
@@ -133,7 +135,7 @@ struct amode    *temp_addr()
  *      addressing mode.
  */
 {       struct amode    *ap;
-        ap = xalloc(sizeof(struct amode));
+        ap =(struct amode *) xalloc(sizeof(struct amode));
         ap->mode = am_areg;
         ap->preg = next_addr % 2;
         ap->deep = next_addr;
@@ -146,7 +148,7 @@ struct amode    *temp_addr()
         return ap;
 }
 
-freeop(ap)
+ freeop(ap)
 /*
  *      release any temporary registers used in an addressing mode.
  */
@@ -159,4 +161,3 @@ struct amode    *ap;
                 --next_addr;
 }
 
-

@@ -1,4 +1,4 @@
-#include        <stdio.h>
+#include        "stdio.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
@@ -14,7 +14,8 @@
  *	use for profit without the written consent of the author is prohibited.
  *
  *	This compiler may be distributed freely for non-commercial use as long
- *	as this notice stays intact. Please forward any enhancements or questions
+ *	as this notice stays intact. Please forward any enhancements or question
+s
  *	to:
  *
  *		Matthew Brandt
@@ -38,10 +39,10 @@ struct amode    *make_label(lab)
 int     lab;
 {       struct enode    *lnode;
         struct amode    *ap;
-        lnode = xalloc(sizeof(struct enode));
+        lnode =(struct enode *)xalloc(sizeof(struct enode));
         lnode->nodetype = en_labcon;
         lnode->v.i = lab;
-        ap = xalloc(sizeof(struct amode));
+        ap =(struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_direct;
         ap->offset = lnode;
         return ap;
@@ -54,10 +55,10 @@ struct amode    *make_immed(i)
 int     i;
 {       struct amode    *ap;
         struct enode    *ep;
-        ep = xalloc(sizeof(struct enode));
+        ep = (struct enode *)xalloc(sizeof(struct enode));
         ep->nodetype = en_icon;
         ep->v.i = i;
-        ap = xalloc(sizeof(struct amode));
+        ap =(struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_immed;
         ap->offset = ep;
         return ap;
@@ -69,13 +70,13 @@ struct amode    *make_offset(node)
  */
 struct enode    *node;
 {       struct amode    *ap;
-        ap = xalloc(sizeof(struct amode));
+        ap =(struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_direct;
         ap->offset = node;
         return ap;
 }
-        
-make_legal(ap,flags,size)
+
+ make_legal(ap,flags,size)
 /*
  *      make_legal will coerce the addressing mode in ap1 into a
  *      mode that is satisfactory for the flag word.
@@ -92,8 +93,7 @@ int             flags, size;
                                         return;         /* mode ok */
                                 break;
                         case am_areg:
-                                if( flags & F_AREG )
-                                        return;
+                                if( flags & F_AREG )                                        return;
                                 break;
                         case am_dreg:
                                 if( flags & F_DREG )
@@ -110,7 +110,7 @@ int             flags, size;
         if( flags & F_DREG )
                 {
                 freeop(ap);             /* maybe we can use it... */
-                ap2 = temp_data();      /* allocate to dreg */
+                ap2 = (struct amode *)temp_data();      /* allocate to dreg */
                 gen_code(op_move,size,ap,ap2);
                 ap->mode = am_dreg;
                 ap->preg = ap2->preg;
@@ -121,9 +121,9 @@ int             flags, size;
         if( size == 1 )
                 {
                 freeop(ap);
-                ap2 = temp_data();
+                ap2 = (struct amode *)temp_data();
                 gen_code(op_move,1,ap,ap2);
-                gen_code(op_ext,2,ap2,0);
+                gen_code(op_ext,2,ap2,(struct amode *)0);
                 freeop(ap);
                 ap->mode = ap2->mode;
                 ap->preg = ap2->preg;
@@ -131,7 +131,7 @@ int             flags, size;
                 size = 2;
                 }
         freeop(ap);
-        ap2 = temp_addr();
+        ap2 =(struct amode *) temp_addr();
         gen_code(op_move,size,ap,ap2);
         ap->mode = am_areg;
         ap->preg = ap2->preg;
@@ -139,7 +139,7 @@ int             flags, size;
         ap->tempflag = 1;
 }
 
-do_extend(ap,isize,osize,flags)
+ do_extend(ap,isize,osize,flags)
 /*
  *      if isize is not equal to osize then the operand ap will be
  *      loaded into a register (if not already) and if osize is
@@ -156,10 +156,10 @@ int             isize, osize, flags;
         switch( isize )
                 {
                 case 1:
-                        gen_code(op_ext,2,ap,0);
+                        gen_code(op_ext,2,ap,(struct amode *)0);
                 case 2:
                         if( osize == 4 )
-                                gen_code(op_ext,4,ap,0);
+                                gen_code(op_ext,4,ap,(struct amode *)0);
                 }
 }
 
@@ -200,7 +200,9 @@ struct enode    *node;
                         ap1 = gen_expr(node->v.p[1],F_AREG,4);
                         ap1->sreg = node->v.p[0]->v.i;
                         ap1->mode = am_indx2;   /* 0(Ax,Dx) */
-                        ap1->offset = makenode(en_icon,0,0);
+                        ap1->offset =(struct enode *) makenode(en_icon,
+                                                              (struct enode *)0,
+                                                              (struct enode *)0);
                         return ap1;
                         }
                 ap1 = gen_expr(node->v.p[0],F_AREG,4);
@@ -215,7 +217,9 @@ struct enode    *node;
                         ap1->mode = am_indx3;
                         ap1->sreg = ap2->preg;
                         }
-                ap1->offset = makenode(en_icon,0,0);
+                ap1->offset =(struct enode *) makenode(en_icon,
+                                                      (struct enode *)0,
+                                                      (struct enode *)0);
                 return ap1;
                 }
         ap1 = gen_expr(node->v.p[0],F_AREG | F_IMMED,4);
@@ -272,10 +276,11 @@ int             flags, size;
                 }
         else if( node->v.p[0]->nodetype == en_autocon )
                 {
-                ap1 = xalloc(sizeof(struct amode));
+                ap1 =(struct amode *) xalloc(sizeof(struct amode));
                 ap1->mode = am_indx;
                 ap1->preg = 6;
-                ap1->offset = makenode(en_icon,node->v.p[0]->v.i);
+                ap1->offset =(struct enode *) makenode(en_icon,(struct enode *)node->v.p[0]->v.i,
+                                                               (struct enode *)0);
                 do_extend(ap1,siz1,size,flags);
                 make_legal(ap1,flags,size);
                 return ap1;
@@ -302,14 +307,14 @@ struct enode    *node;
 int             flags, size, op;
 {       struct amode    *ap;
         ap = gen_expr(node->v.p[0],F_DREG | F_VOL,size);
-        gen_code(op,size,ap,0);
+        gen_code(op,size,ap,(struct amode *)0);
         make_legal(ap,flags,size);
         return ap;
 }
 
 struct amode    *gen_binary(node,flags,size,op)
 /*
- *      generate code to evaluate a binary node and return 
+ *      generate code to evaluate a binary node and return
  *      the addressing mode of the result.
  */
 struct enode    *node;
@@ -326,7 +331,7 @@ int             flags, size, op;
 
 struct amode    *gen_xbin(node,flags,size,op)
 /*
- *      generate code to evaluate a restricted binary node and return 
+ *      generate code to evaluate a restricted binary node and return
  *      the addressing mode of the result.
  */
 struct enode    *node;
@@ -357,7 +362,7 @@ int             flags, size, op;
         return ap1;
 }
 
-struct amode    *gen_modiv(node,flags,size,op,modflag)
+struct amode    *gen_modiv(node,flags,op,modflag)
 /*
  *      generate code to evaluate a mod operator or a divide
  *      operator. these operations are done on only long
@@ -365,7 +370,7 @@ struct amode    *gen_modiv(node,flags,size,op,modflag)
  *      instruction can be used.
  */
 struct enode    *node;
-int             flags, op, size, modflag;
+int             flags, op, modflag;
 {       struct amode    *ap1, *ap2;
         if( node->v.p[0]->nodetype == en_icon )
                 swap_nodes(node);
@@ -374,14 +379,14 @@ int             flags, op, size, modflag;
         validate(ap1);
         gen_code(op,0,ap2,ap1);
         if( modflag )
-                gen_code(op_swap,0,ap1,0);
-        gen_code(op_ext,4,ap1,0);
+                gen_code(op_swap,0,ap1,(struct amode *)0);
+        gen_code(op_ext,4,ap1,(struct amode *)0);
         make_legal(ap1,flags,4);
         freeop(ap2);
         return ap1;
 }
 
-swap_nodes(node)
+ swap_nodes(node)
 /*
  *      exchange the two operands in a node.
  */
@@ -392,14 +397,14 @@ struct enode    *node;
         node->v.p[1] = temp;
 }
 
-struct amode    *gen_mul(node,flags,size,op)
+struct amode    *gen_mul(node,flags,op)
 /*
  *      generate code to evaluate a multiply node. both operands
  *      are treated as words and the result is long and is always
  *      in a register so that the 68000 mul instruction can be used.
  */
 struct enode    *node;
-int             flags, size, op;
+int             flags, op;
 {       struct amode    *ap1, *ap2;
         if( node->v.p[0]->nodetype == en_icon )
                 swap_nodes(node);
@@ -417,7 +422,7 @@ struct amode    *gen_hook(node,flags,size)
  *      generate code to evaluate a condition operator node (?:)
  */
 struct enode    *node;
-int             flags, size;
+int             flags,size;
 {       struct amode    *ap1, *ap2;
         int             false_label, end_label;
         false_label = nextlabel++;
@@ -425,9 +430,9 @@ int             flags, size;
         flags = (flags & (F_AREG | F_DREG)) | F_VOL;
         falsejp(node->v.p[0],false_label);
         node = node->v.p[1];
-        ap1 = gen_expr(node->v.p[0],flags,size);
+        ap1 = gen_expr(node->v.p[0],flags,0);
         freeop(ap1);
-        gen_code(op_bra,0,make_label(end_label),0);
+        gen_code(op_bra,0,make_label(end_label),(struct amode *)0);
         gen_label(false_label);
         ap2 = gen_expr(node->v.p[1],flags,size);
         if( !equal_address(ap1,ap2) )
@@ -450,7 +455,7 @@ struct amode    *gen_asadd(node,flags,size,op)
 struct enode    *node;
 int             flags,size,op;
 {       struct amode    *ap1, *ap2;
-        int             ssize, mask0, mask1;
+        int             ssize;
         ssize = natural_size(node->v.p[0]);
         if( ssize > size )
                 size = ssize;
@@ -459,7 +464,7 @@ int             flags,size,op;
         validate(ap1);
         gen_code(op,ssize,ap2,ap1);
         freeop(ap2);
-        do_extend(ap1,ssize,size);
+        do_extend(ap1,ssize,size,0);
         make_legal(ap1,flags,size);
         return ap1;
 }
@@ -471,7 +476,7 @@ struct amode    *gen_aslogic(node,flags,size,op)
 struct enode    *node;
 int             flags,size,op;
 {       struct amode    *ap1, *ap2, *ap3;
-        int             ssize, mask0, mask1;
+        int             ssize;
         ssize = natural_size(node->v.p[0]);
         if( ssize > size )
                 size = ssize;
@@ -482,19 +487,19 @@ int             flags,size,op;
                 gen_code(op,ssize,ap2,ap1);
         else
                 {
-                ap3 = temp_data();
+                ap3 =(struct amode *) temp_data();
                 gen_code(op_move,4,ap1,ap3);
                 gen_code(op,size,ap2,ap3);
                 gen_code(op_move,size,ap3,ap1);
                 freeop(ap3);
                 }
         freeop(ap2);
-        do_extend(ap1,ssize,size);
+        do_extend(ap1,ssize,size,0);
         make_legal(ap1,flags,size);
         return ap1;
 }
 
-gen_asshift(node,flags,size,op)
+struct amode *gen_asshift(node,flags,size,op)
 /*
  *      generate shift equals operators.
  */
@@ -504,7 +509,7 @@ int             flags, size, op;
         ap1 = gen_expr(node->v.p[0],F_ALL,size);
         if( ap1->mode != am_dreg )
                 {
-                ap3 = temp_data();
+                ap3 = (struct amode *)temp_data();
                 gen_code(op_move,size,ap1,ap3);
                 }
         else
@@ -522,12 +527,11 @@ int             flags, size, op;
         return ap1;
 }
 
-struct amode    *gen_asmul(node,flags,size)
+struct amode    *gen_asmul(node)
 /*
  *      generate a *= node.
  */
 struct enode    *node;
-int             flags, size;
 {       struct amode    *ap1, *ap2, *ap3;
         int             siz1;
         siz1 = natural_size(node->v.p[0]);
@@ -535,10 +539,10 @@ int             flags, size;
         ap2 = gen_expr(node->v.p[0],F_ALL,siz1);
         if( siz1 == 1 || ap2->mode == am_areg )
                 {
-                ap3 = temp_data();
+                ap3 = (struct amode *)temp_data();
                 gen_code(op_move,siz1,ap2,ap3);
                 if( siz1 == 1 )
-                        gen_code(op_ext,2,ap3,0);
+                        gen_code(op_ext,2,ap3,(struct amode *)0);
                 freeop(ap3);
                 }
         else
@@ -558,26 +562,26 @@ int             flags, size, op;
 {       struct amode    *ap1, *ap2, *ap3;
         int             siz1;
         siz1 = natural_size(node->v.p[0]);
-        ap1 = temp_data();
+        ap1 = (struct amode *)temp_data();
         ap2 = gen_expr(node->v.p[0],F_ALL,siz1);
         validate(ap1);
         gen_code(op_move,siz1,ap2,ap1);
-        do_extend(ap1,siz1,4);
+        do_extend(ap1,siz1,4,0);
         ap3 = gen_expr(node->v.p[1],F_ALL & ~F_AREG,2);
         validate(ap2);
         validate(ap1);
         gen_code(op_divs,0,ap3,ap1);
         freeop(ap3);
         if( op != op_divs )
-                gen_code(op_swap,0,ap1,0);
-        gen_code(op_ext,4,ap1,0);
+                gen_code(op_swap,0,ap1,(struct amode *)0);
+        gen_code(op_ext,4,ap1,(struct amode *)0);
         gen_code(op_move,siz1,ap1,ap2);
         freeop(ap2);
         make_legal(ap1,flags,size);
         return ap1;
 }
 
-struct amode    *gen_assign(node,flags,size)
+struct amode    *gen_assign(node,size)
 /*
  *      generate code for an assignment node. if the size of the
  *      assignment destination is larger than the size passed then
@@ -585,7 +589,7 @@ struct amode    *gen_assign(node,flags,size)
  *      assignment size.
  */
 struct enode    *node;
-int             flags, size;
+int              size;
 {       struct amode    *ap1, *ap2;
         int             ssize;
         switch( node->v.p[0]->nodetype )
@@ -617,31 +621,31 @@ struct amode    *gen_aincdec(node,flags,size,op)
  *      either op_add (for increment) or op_sub (for decrement).
  */
 struct enode    *node;
-int             flags, size;
+int             flags, size, op;
 {       struct amode    *ap1, *ap2;
         int             siz1;
         siz1 = natural_size(node->v.p[0]);
         if( flags & F_NOVALUE )         /* dont need result */
                 {
                 ap1 = gen_expr(node->v.p[0],F_ALL,siz1);
-                gen_code(op,siz1,make_immed(node->v.p[1]),ap1);
+                gen_code(op,siz1,make_immed((int)node->v.p[1]),ap1);
                 freeop(ap1);
                 return ap1;
                 }
         if( flags & F_DREG )
-                ap1 = temp_data();
+                ap1 =(struct amode *) temp_data();
         else
-                ap1 = temp_addr();
+                ap1 =(struct amode *) temp_addr();
         ap2 = gen_expr(node->v.p[0],F_ALL,siz1);
         validate(ap1);
         gen_code(op_move,siz1,ap2,ap1);
-        gen_code(op,siz1,make_immed(node->v.p[1]),ap2);
+        gen_code(op,siz1,make_immed((int)node->v.p[1]),ap2);
         freeop(ap2);
-        do_extend(ap1,siz1,size);
+        do_extend(ap1,siz1,size,0);
         return ap1;
 }
 
-push_param(ep)
+ push_param(ep)
 /*
  *      push the operand expression onto the stack.
  */
@@ -675,30 +679,32 @@ struct amode    *gen_fcall(node,flags)
  *      of the result.
  */
 struct enode    *node;
+int    flags;
 {       struct amode    *ap, *result;
         int             i;
-        result = temp_addr();
+        result = (struct amode *)temp_addr();
         temp_addr();                    /* push any used addr temps */
         freeop(result); freeop(result);
-        result = temp_data();
+        result = (struct amode *)temp_data();
         temp_data(); temp_data();       /* push any used data registers */
         freeop(result); freeop(result); freeop(result);
         i = gen_parms(node->v.p[1]);    /* generate parameters */
         if( node->v.p[0]->nodetype == en_nacon )
-                gen_code(op_jsr,0,make_offset(node->v.p[0]),0);
+                gen_code(op_jsr,0,make_offset(node->v.p[0]),
+                        (struct amode *)0);
         else
                 {
                 ap = gen_expr(node->v.p[0],F_AREG,4);
                 ap->mode = am_ind;
                 freeop(ap);
-                gen_code(op_jsr,0,ap,0);
+                gen_code(op_jsr,0,ap,(struct amode *)0);
                 }
         if( i != 0 )
                 gen_code(op_add,4,make_immed(i * 4),makeareg(7));
         if( flags & F_DREG )
-                result = temp_data();
+                result =(struct amode *) temp_data();
         else
-                result = temp_addr();
+                result =(struct amode *) temp_addr();
         if( result->preg != 0 || (flags & F_DREG) == 0 )
                 gen_code(op_move,4,makedreg(0),result);
         return result;
@@ -724,14 +730,14 @@ int             flags, size;
                 case en_icon:
                 case en_labcon:
                 case en_nacon:
-                        ap1 = xalloc(sizeof(struct amode));
+                        ap1 =(struct amode *) xalloc(sizeof(struct amode));
                         ap1->mode = am_immed;
                         ap1->offset = node;
                         make_legal(ap1,flags,size);
                         return ap1;
                 case en_autocon:
-                        ap1 = temp_addr();
-                        ap2 = xalloc(sizeof(struct amode));
+                        ap1 =(struct amode *) temp_addr();
+                        ap2 =(struct amode *) xalloc(sizeof(struct amode));
                         ap2->mode = am_indx;
                         ap2->preg = 6;          /* frame pointer */
                         ap2->offset = node;     /* use as constant node */
@@ -743,7 +749,7 @@ int             flags, size;
                 case en_l_ref:
                         return gen_deref(node,flags,size);
                 case en_tempref:
-                        ap1 = xalloc(sizeof(struct amode));
+                        ap1 =(struct amode *)xalloc(sizeof(struct amode));
                         if( node->v.i < 8 )
                                 {
                                 ap1->mode = am_dreg;
@@ -770,19 +776,20 @@ int             flags, size;
                 case en_or:
                         return gen_binary(node,flags,size,op_or);
 				case en_xor:
-						return gen_xbin(node,flags,size,op_eor);
+						return gen_xbin(node,flags,size,
+op_eor);
                 case en_mul:
-                        return gen_mul(node,flags,size,op_muls);
+                        return gen_mul(node,flags,op_muls);
                 case en_umul:
-                        return gen_mul(node,flags,size,op_mulu);
+                        return gen_mul(node,flags,op_mulu);
                 case en_div:
-                        return gen_modiv(node,flags,size,op_divs,0);
+                        return gen_modiv(node,flags,op_divs,0);
                 case en_udiv:
-                        return gen_modiv(node,flags,size,op_divu,0);
+                        return gen_modiv(node,flags,op_divu,0);
                 case en_mod:
-                        return gen_modiv(node,flags,size,op_divs,1);
+                        return gen_modiv(node,flags,op_divs,1);
                 case en_umod:
-                        return gen_modiv(node,flags,size,op_divu,1);
+                        return gen_modiv(node,flags,op_divu,1);
                 case en_lsh:
                         return gen_shift(node,flags,size,op_asl);
                 case en_rsh:
@@ -800,13 +807,13 @@ int             flags, size;
                 case en_asrsh:
                         return gen_asshift(node,flags,size,op_asr);
                 case en_asmul:
-                        return gen_asmul(node,flags,size);
+                        return gen_asmul(node);
                 case en_asdiv:
                         return gen_asmodiv(node,flags,size,op_divs);
                 case en_asmod:
                         return gen_asmodiv(node,flags,size,op_muls);
                 case en_assign:
-                        return gen_assign(node,flags,size);
+                        return gen_assign(node,size);
                 case en_ainc:
                         return gen_aincdec(node,flags,size,op_add);
                 case en_adec:
@@ -821,18 +828,19 @@ int             flags, size;
                         lab0 = nextlabel++;
                         lab1 = nextlabel++;
                         falsejp(node,lab0);
-                        ap1 = temp_data();
+                        ap1 = (struct amode *)temp_data();
                         gen_code(op_moveq,0,make_immed(1),ap1);
-                        gen_code(op_bra,0,make_label(lab1),0);
+                        gen_code(op_bra,0,make_label(lab1),(struct amode *)0);
                         gen_label(lab0);
-                        gen_code(op_clr,4,ap1,0);
+                        gen_code(op_clr,4,ap1,(struct amode *)0);
                         gen_label(lab1);
                         return ap1;
                 case en_cond:
                         return gen_hook(node,flags,size);
                 case en_void:
                         natsize = natural_size(node->v.p[0]);
-                        freeop(gen_expr(node->v.p[0],F_ALL | F_NOVALUE,natsize));
+                        freeop(gen_expr(node->v.p[0],F_ALL | F_NOVALUE,natsize))
+;
                         return gen_expr(node->v.p[1],flags,size);
                 case en_fcall:
                         return gen_fcall(node,flags);
@@ -901,7 +909,7 @@ struct enode    *node;
         return 0;
 }
 
-gen_compare(node)
+ gen_compare(node)
 /*
  *      generate code to do a comparison of the two operands of
  *      node.
@@ -918,7 +926,7 @@ struct enode    *node;
         freeop(ap1);
 }
 
-truejp(node,label)
+ truejp(node,label)
 /*
  *      generate a jump to label if the node passed evaluates to
  *      a true condition.
@@ -934,43 +942,43 @@ int             label;
                 {
                 case en_eq:
                         gen_compare(node);
-                        gen_code(op_beq,0,make_label(label),0);
+                        gen_code(op_beq,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ne:
                         gen_compare(node);
-                        gen_code(op_bne,0,make_label(label),0);
+                        gen_code(op_bne,0,make_label(label),(struct amode *)0);
                         break;
                 case en_lt:
                         gen_compare(node);
-                        gen_code(op_blt,0,make_label(label),0);
+                        gen_code(op_blt,0,make_label(label),(struct amode *)0);
                         break;
                 case en_le:
                         gen_compare(node);
-                        gen_code(op_ble,0,make_label(label),0);
+                        gen_code(op_ble,0,make_label(label),(struct amode *)0);
                         break;
                 case en_gt:
                         gen_compare(node);
-                        gen_code(op_bgt,0,make_label(label),0);
+                        gen_code(op_bgt,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ge:
                         gen_compare(node);
-                        gen_code(op_bge,0,make_label(label),0);
+                        gen_code(op_bge,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ult:
                         gen_compare(node);
-                        gen_code(op_blo,0,make_label(label),0);
+                        gen_code(op_blo,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ule:
                         gen_compare(node);
-                        gen_code(op_bls,0,make_label(label),0);
+                        gen_code(op_bls,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ugt:
                         gen_compare(node);
-                        gen_code(op_bhi,0,make_label(label),0);
+                        gen_code(op_bhi,0,make_label(label),(struct amode *)0);
                         break;
                 case en_uge:
                         gen_compare(node);
-                        gen_code(op_bhs,0,make_label(label),0);
+                        gen_code(op_bhs,0,make_label(label),(struct amode *)0);
                         break;
                 case en_land:
                         lab0 = nextlabel++;
@@ -988,14 +996,14 @@ int             label;
                 default:
                         siz1 = natural_size(node);
                         ap1 = gen_expr(node,F_ALL,siz1);
-                        gen_code(op_tst,siz1,ap1,0);
+                        gen_code(op_tst,siz1,ap1,(struct amode *)0);
                         freeop(ap1);
-                        gen_code(op_bne,0,make_label(label),0);
+                        gen_code(op_bne,0,make_label(label),(struct amode *)0);
                         break;
                 }
 }
 
-falsejp(node,label)
+ falsejp(node,label)
 /*
  *      generate code to execute a jump to label if the expression
  *      passed is false.
@@ -1011,43 +1019,43 @@ int             label;
                 {
                 case en_eq:
                         gen_compare(node);
-                        gen_code(op_bne,0,make_label(label),0);
+                        gen_code(op_bne,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ne:
                         gen_compare(node);
-                        gen_code(op_beq,0,make_label(label),0);
+                        gen_code(op_beq,0,make_label(label),(struct amode *)0);
                         break;
                 case en_lt:
                         gen_compare(node);
-                        gen_code(op_bge,0,make_label(label),0);
+                        gen_code(op_bge,0,make_label(label),(struct amode *)0);
                         break;
                 case en_le:
                         gen_compare(node);
-                        gen_code(op_bgt,0,make_label(label),0);
+                        gen_code(op_bgt,0,make_label(label),(struct amode *)0);
                         break;
                 case en_gt:
                         gen_compare(node);
-                        gen_code(op_ble,0,make_label(label),0);
+                        gen_code(op_ble,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ge:
                         gen_compare(node);
-                        gen_code(op_blt,0,make_label(label),0);
+                        gen_code(op_blt,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ult:
                         gen_compare(node);
-                        gen_code(op_bhs,0,make_label(label),0);
+                        gen_code(op_bhs,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ule:
                         gen_compare(node);
-                        gen_code(op_bhi,0,make_label(label),0);
+                        gen_code(op_bhi,0,make_label(label),(struct amode *)0);
                         break;
                 case en_ugt:
                         gen_compare(node);
-                        gen_code(op_bls,0,make_label(label),0);
+                        gen_code(op_bls,0,make_label(label),(struct amode *)0);
                         break;
                 case en_uge:
                         gen_compare(node);
-                        gen_code(op_blo,0,make_label(label),0);
+                        gen_code(op_blo,0,make_label(label),(struct amode *)0);
                         break;
                 case en_land:
                         falsejp(node->v.p[0],label);
@@ -1065,11 +1073,11 @@ int             label;
                 default:
                         siz1 = natural_size(node);
                         ap = gen_expr(node,F_ALL,siz1);
-                        gen_code(op_tst,siz1,ap,0);
+                        gen_code(op_tst,siz1,ap,(struct amode *)0);
                         freeop(ap);
-                        gen_code(op_beq,0,make_label(label),0);
+                        gen_code(op_beq,0,make_label(label),(struct amode *)0);
                         break;
                 }
 }
 
-
+
