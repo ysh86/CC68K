@@ -1,0 +1,49 @@
+     1	#define true 1
+     2	#define false 0
+     3	#define size 8190
+     4	#define sizepl 8191
+     5	
+     6	main() {
+     7		char	flags[sizepl];
+     8	
+     9		int i,prime,k,count,iter;
+    10		printf("10 iterations\n");
+    11		for(iter=1;iter<= 10;iter++){
+    12			count=0;
+    13			for(i = 0; i<=size;i++)
+    14				flags[i]=true;
+    15			for(i=0;i <= size; i++){
+    16				if(flags[i]){
+    17					prime = i+i+3;
+    18					k=i+prime;
+    19						while(k<=size){
+    20							flags[k] = false;
+    21							k += prime;
+    22							}
+    23						count = count+1;
+    24					}
+    25				}
+    26			}
+    27		printf("\n%d primes\n",count);
+    28		}
+
+
+*** local symbol table ***
+
+flags      =00e001 Auto        Array of Char
+i          =00dffc Auto        Long
+prime      =00dff8 Auto        Long
+k          =00dff4 Auto        Long
+count      =00dff0 Auto        Long
+iter       =00dfec Auto        Long
+
+
+
+
+ *** global scope symbol table ***
+
+main       =000000 Global      Function returning Long
+printf     =000000 External    Function returning Long
+
+ *** structures and unions ***
+
