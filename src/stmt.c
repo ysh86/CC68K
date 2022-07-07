@@ -96,14 +96,14 @@ struct snode    *forstmt()
         snp =(struct snode *) xalloc(sizeof(struct snode));
         getsym();
         needpunc(openpa);
-        if( expression(&((struct enode *)(snp->label))) == 0 )
-                snp->label = 0;
+        if( expression(&(snp->l.exp0)) == 0 )
+                snp->l.exp0 = 0;
         needpunc(semicolon);
         snp->stype = st_for;
         if( expression(&(snp->exp)) == 0 )
                 snp->exp = 0;
         needpunc(semicolon);
-        if( expression(&((struct enode *)(snp->s2))) == 0 )
+        if( expression((struct enode **)&(snp->s2)) == 0 )
                 snp->s2 = 0;
         needpunc(closepa);
         snp->s1 = statement();
@@ -150,7 +150,7 @@ struct snode    *casestmt()
                 getsym();
                 snp->s2 = 0;
                 snp->stype = st_case;
-                snp->label =(int *) intexpr();
+                snp->l.label = intexpr();
                 }
         else if( lastst == kw_default) {
                 getsym();
@@ -192,10 +192,10 @@ struct snode    *head;
 		cur = top->next;
 		while( cur != 0 )
 		{
-			if( (!(cur->s1 || cur->s2) && cur->label == top->label)
+			if( (!(cur->s1 || cur->s2) && cur->l.label == top->l.label)
 				|| (cur->s2 && top->s2) )
 			{
-				printf(" duplicate case label %d\n",cur->label);
+				printf(" duplicate case label %d\n",cur->l.label);
 				return 1;
 			}
 			cur = cur->next;
@@ -331,7 +331,7 @@ struct snode    *labelstmt()
         getsym();       /* get past id */
         needpunc(colon);
         if( sp->storage_class == sc_label ) {
-                snp->label =(int *) sp->value.i;
+                snp->l.label = sp->value.i;
                 snp->next = 0;
                 return snp;
                 }
@@ -366,7 +366,7 @@ struct snode    *gotostmt()
                 error( ERR_LABEL );
         else    {
                 snp->stype = st_goto;
-                snp->label =(int *) sp->value.i;
+                snp->l.label = sp->value.i;
                 snp->next = 0;
                 return snp;
                 }

@@ -37,7 +37,6 @@ extern SYM              *lasthead;
 extern struct slit      *strtab;
 extern int              lc_static;
 extern int              lc_auto;
-extern struct snode     *bodyptr;       /* parse tree for function */
 extern int              global_flag;
 extern TABLE            defsyms;
 extern int              save_mask;      /* register save mask */

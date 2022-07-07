@@ -54,7 +54,10 @@ struct snode {
         struct snode    *next;          /* next statement */
         struct enode    *exp;           /* condition or expression */
         struct snode    *s1, *s2;       /* internal statements */
-        int             *label;         /* label number for goto */
+        union {
+                int             label;          /* label number for goto */
+                struct enode    *exp0;          /* initializer */
+                } l;
         };
 
 struct cse {

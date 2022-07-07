@@ -247,8 +247,8 @@ struct snode    *blk;
                                 scan(blk->s1);
                                 break;
                         case st_for:
-                                opt4((struct enode **)&blk->label);
-                                scanexpr((struct enode *)blk->label,0);
+                                opt4(&blk->l.exp0);
+                                scanexpr(blk->l.exp0,0);
                                 opt4(&blk->exp);
                                 scanexpr(blk->exp,0);
                                 scan(blk->s1);
@@ -454,7 +454,7 @@ struct snode    *blk;
                                 repcse(blk->s1);
                                 break;
                         case st_for:
-                                repexpr((struct enode *)blk->label);
+                                repexpr(blk->l.exp0);
                                 repexpr(blk->exp);
                                 repcse(blk->s1);
                                 repexpr((struct enode *)blk->s2);

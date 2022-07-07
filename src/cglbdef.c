@@ -41,7 +41,6 @@ SYM             *lasthead = NULL;
 struct slit     *strtab = 0;
 int             lc_static = 0;
 int             lc_auto = 0;
-struct snode    *bodyptr = 0;
 int             global_flag = 1;
 TABLE           defsyms = {0,0};
 int             save_mask = 0;          /* register save mask */

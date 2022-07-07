@@ -144,9 +144,9 @@ struct snode    *stmt;
         exit_label = nextlabel++;
         contlab = loop_label;
         initstack();
-        if( stmt->label != 0 )
-                gen_expr((struct enode *)(stmt->label),F_ALL | F_NOVALUE
-                        ,natural_size((struct enode *)stmt->label));
+        if( stmt->l.exp0 != 0 )
+                gen_expr(stmt->l.exp0,F_ALL | F_NOVALUE
+                        ,natural_size(stmt->l.exp0));
         gen_label(loop_label);
         initstack();
         if( stmt->exp != 0 )
@@ -268,25 +268,25 @@ struct snode    *stmt;
                 {
                 if( stmt->s2 )          /* default case ? */
                         {
-                        stmt->label =(int *) curlab;
+                        stmt->l.label = curlab;
                         defcase = stmt;
                         }
                 else
                         {
                         gen_code(op_dc,4,make_label(curlab),
-                                make_direct((struct enode *)stmt->label));
-                        stmt->label =(int *) curlab;
+                                         make_direct(stmt->l.label));
+                        stmt->l.label = curlab;
                         }
                 if( stmt->s1 != 0 && stmt->next != 0 )
                         curlab = nextlabel++;
                 stmt = stmt->next;
                 }
         if( defcase == 0 )
-                gen_code(op_dc,4,make_direct((struct enode *)0),
+                gen_code(op_dc,4,make_direct(0),
                                  make_label(breaklab));
         else
-                gen_code(op_dc,4,make_direct((struct enode *)0),
-                                 make_label((int)defcase->label));
+                gen_code(op_dc,4,make_direct(0),
+                                 make_label(defcase->l.label));
 }
 
 void gencase(stmt)
@@ -298,11 +298,11 @@ struct snode    *stmt;
                 {
                 if( stmt->s1 != 0 )
                         {
-                        gen_label((int)stmt->label);
+                        gen_label(stmt->l.label);
                         genstmt(stmt->s1);
                         }
                 else if( stmt->next == 0 )
-                        gen_label((int)stmt->label);
+                        gen_label(stmt->l.label);
                 stmt = stmt->next;
                 }
 }
@@ -358,10 +358,10 @@ struct snode    *stmt;
                 switch( stmt->stype )
                         {
                         case st_label:
-                                gen_label((int)stmt->label);
+                                gen_label(stmt->l.label);
                                 break;
                         case st_goto:
-                                gen_code(op_bra,0,make_label((int)stmt->label),
+                                gen_code(op_bra,0,make_label(stmt->l.label),
                                                    (struct amode *)0);
                                 break;
                         case st_expr:
