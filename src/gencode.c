@@ -58,7 +58,7 @@ int     lab;
         lnode->v.i = lab;
         ap =(struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_direct;
-        ap->offset = lnode;
+        ap->v.offset = lnode;
         return ap;
 }
 
@@ -74,7 +74,7 @@ int     i;
         ep->v.i = i;
         ap =(struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_immed;
-        ap->offset = ep;
+        ap->v.offset = ep;
         return ap;
 }
 
@@ -86,7 +86,7 @@ struct enode    *node;
 {       struct amode    *ap;
         ap =(struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_direct;
-        ap->offset = node;
+        ap->v.offset = node;
         return ap;
 }
 
@@ -234,16 +234,16 @@ struct enode    *node;
                 return ap1;
                 }
         ap1 = gen_expr(node->v.p[0],F_AREG | F_IMMED,4);
-        if( ap1->mode == am_immed && isshort(ap1->offset) )
+        if( ap1->mode == am_immed && isshort(ap1->v.offset) )
                 {
                 ap2 = gen_expr(node->v.p[1],F_AREG,4);
                 ap2->mode = am_indx;
-                ap2->offset = ap1->offset;
+                ap2->v.offset = ap1->v.offset;
                 return ap2;
                 }
         ap2 = gen_expr(node->v.p[1],F_ALL,4);   /* get right op */
-        if( ap2->mode == am_immed && isshort(ap2->offset) &&
-			ap1->mode == am_areg ) /* make am_indx */
+        if( ap2->mode == am_immed && isshort(ap2->v.offset) &&
+            ap1->mode == am_areg ) /* make am_indx */
                 {
                 ap2->mode = am_indx;
                 ap2->preg = ap1->preg;
@@ -640,7 +640,7 @@ int             flags, size, op;
         if( flags & F_NOVALUE )         /* dont need result */
                 {
                 ap1 = gen_expr(node->v.p[0],F_ALL,siz1);
-                gen_code(op,siz1,make_immed((int)node->v.p[1]),ap1);
+                gen_code(op,siz1,make_immed((long)node->v.p[1]),ap1);
                 freeop(ap1);
                 return ap1;
                 }
@@ -651,7 +651,7 @@ int             flags, size, op;
         ap2 = gen_expr(node->v.p[0],F_ALL,siz1);
         validate(ap1);
         gen_code(op_move,siz1,ap2,ap1);
-        gen_code(op,siz1,make_immed((int)node->v.p[1]),ap2);
+        gen_code(op,siz1,make_immed((long)node->v.p[1]),ap2);
         freeop(ap2);
         do_extend(ap1,siz1,size,0);
         return ap1;
@@ -744,7 +744,7 @@ int             flags, size;
                 case en_nacon:
                         ap1 =(struct amode *) xalloc(sizeof(struct amode));
                         ap1->mode = am_immed;
-                        ap1->offset = node;
+                        ap1->v.offset = node;
                         make_legal(ap1,flags,size);
                         return ap1;
                 case en_autocon:
@@ -752,7 +752,7 @@ int             flags, size;
                         ap2 =(struct amode *) xalloc(sizeof(struct amode));
                         ap2->mode = am_indx;
                         ap2->preg = 6;          /* frame pointer */
-                        ap2->offset = node;     /* use as constant node */
+                        ap2->v.offset = node;     /* use as constant node */
                         gen_code(op_lea,0,ap2,ap1);
                         make_legal(ap1,flags,size);
                         return ap1;             /* return reg */

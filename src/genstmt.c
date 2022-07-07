@@ -79,7 +79,7 @@ int     mask;
 {       struct amode    *ap;
         ap = (struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_mask;
-        ap->offset =(struct enode *) mask;
+        ap->v.i = mask;
         return ap;
 }
 

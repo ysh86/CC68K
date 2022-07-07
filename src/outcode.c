@@ -153,7 +153,7 @@ struct amode    *ap;
                 case am_immed:
                         fprintf(output,"#");
                 case am_direct:
-                        putconst(ap->offset);
+                        putconst(ap->v.offset);
                         break;
                 case am_areg:
                         fprintf(output,"A%d",ap->preg);
@@ -171,23 +171,23 @@ struct amode    *ap;
                         fprintf(output,"-(A%d)",ap->preg);
                         break;
                 case am_indx:
-                        putconst(ap->offset);
+                        putconst(ap->v.offset);
                         fprintf(output,"(A%d)",ap->preg);
                         break;
                 case am_xpc:
-                        putconst(ap->offset);
+                        putconst(ap->v.offset);
                         fprintf(output,"(D%d,PC)",ap->preg);
                         break;
                 case am_indx2:
-                        putconst(ap->offset);
+                        putconst(ap->v.offset);
                         fprintf(output,"(A%d,D%d.L)",ap->preg,ap->sreg);
                         break;
                 case am_indx3:
-                        putconst(ap->offset);
+                        putconst(ap->v.offset);
                         fprintf(output,"(A%d,A%d.L)",ap->preg,ap->sreg);
                         break;
                 case am_mask:
-                        put_mask((int)(ap->offset));
+                        put_mask(ap->v.i);
                         break;
                 default:
                         printf("DIAG - illegal address mode.\n");
@@ -334,7 +334,7 @@ int     offset;
                 sign = '+';
         if( gentype == longgen && outcol < 55 - strlen(sp->name)) {
                 if( sp->storage_class == sc_static)
-                        fprintf(output,",L_%d%c%d",sp->value.i,sign,offset);
+                        fprintf(output,",L_%d%c%d",(int)sp->value.i,sign,offset);
                 else
                         fprintf(output,",%s%c%d",sp->name,sign,offset);
                 outcol += (11 + strlen(sp->name));
@@ -342,7 +342,7 @@ int     offset;
         else    {
                 nl();
                 if(sp->storage_class == sc_static)
-                        fprintf(output,"\tlong\tL_%d%c%d",sp->value.i,sign,offset);
+                        fprintf(output,"\tlong\tL_%d%c%d",(int)sp->value.i,sign,offset);
                 else
                         fprintf(output,"\tlong\t%s%c%d",sp->name,sign,offset);
                 outcol = 26 + strlen(sp->name);

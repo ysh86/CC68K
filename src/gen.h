@@ -20,7 +20,10 @@ struct amode {
         char            sreg;
         char            tempflag;
         int             deep;           /* stack depth on allocation */
-        struct enode    *offset;
+        union {
+                struct enode    *offset;
+                int             i;
+                } v;
         };
 
 /*      output code structure   */

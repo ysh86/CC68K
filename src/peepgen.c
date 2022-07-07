@@ -47,7 +47,7 @@ struct amode    *ap;
         newap->sreg = ap->sreg;
         newap->tempflag = ap->tempflag;
         newap->deep = ap->deep;
-        newap->offset = ap->offset;
+        newap->v.offset = ap->v.offset;
         return newap;
 }
 
@@ -134,7 +134,7 @@ struct ocode	*ip;
 {       struct enode    *ep;
         if( ip->oper1->mode != am_immed )
                 return;
-        ep = ip->oper1->offset;
+        ep = ip->oper1->v.offset;
         if( ep->nodetype != en_icon )
                 return;
         if( ip->oper2->mode == am_areg )
@@ -196,7 +196,7 @@ struct ocode    *ip;
 {       struct enode    *ep;
         if( ip->oper1->mode != am_immed )
                 return;
-        ep = ip->oper1->offset;
+        ep = ip->oper1->v.offset;
         if( ip->oper2->mode != am_areg )
                 ip->opcode = op_addi;
         else
@@ -224,7 +224,7 @@ struct ocode    *ip;
 {       struct enode    *ep;
         if( ip->oper1->mode != am_immed )
                 return;
-        ep = ip->oper1->offset;
+        ep = ip->oper1->v.offset;
         if( ip->oper2->mode != am_areg )
                 ip->opcode = op_subi;
         else
@@ -255,7 +255,7 @@ struct ocode    *ip;
         struct enode    *ep;
         if( ip->oper1->mode != am_immed )
                 return;
-        ep = ip->oper1->offset;
+        ep = ip->oper1->v.offset;
         if( ip->oper2->mode == am_areg )
                 {
                 if( isshort(ep) )
@@ -294,9 +294,9 @@ int              op;
 {       int     shcnt;
         if( ip->oper1->mode != am_immed )
                 return;
-        if( ip->oper1->offset->nodetype != en_icon )
+        if( ip->oper1->v.offset->nodetype != en_icon )
                 return;
-        shcnt = ip->oper1->offset->v.i;
+        shcnt = ip->oper1->v.offset->v.i;
 /*      vax c doesn't do this type of switch well       */
         if( shcnt == 2) shcnt = 1;
         else if( shcnt == 4) shcnt = 2;
@@ -313,7 +313,7 @@ int              op;
         else if( shcnt == 8192) shcnt = 13;
         else if( shcnt == 16384) shcnt = 14;
         else return;
-        ip->oper1->offset->v.i = shcnt;
+        ip->oper1->v.offset->v.i = shcnt;
         ip->opcode = op;
         ip->length = 4;
 }
