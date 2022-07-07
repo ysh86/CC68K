@@ -27,7 +27,7 @@ char            infile[20],
                 listfile[20],
                 outfile[20];
 extern TABLE    tagtable;
-int		mainflag;
+int             mainflag;
 extern int      total_errors;
 
 extern int options();
@@ -63,7 +63,7 @@ char    **argv;
         return 0;
 }
 
-int	options()
+int     options()
 {
   return 0;
 }
@@ -121,7 +121,7 @@ void summary()
 
 void closefiles()
 {       fclose(input);
-        fprintf(output,"\tEND\t");	/* END directive to output file. */
+        fprintf(output,"\tEND\t");	/* END directive to output file. */ /* TODO: asm format */
         fclose(output);
         fclose(list);
 }

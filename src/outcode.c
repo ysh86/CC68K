@@ -29,8 +29,8 @@
 enum e_gt { nogen, bytegen, wordgen, longgen };
 enum e_sg { noseg, codeseg, dataseg };
 
-int	       gentype = nogen;
-int	       curseg = noseg;
+int        gentype = nogen;
+int        curseg = noseg;
 int        outcol = 0;
 
 /* TODO: asm format */
@@ -202,27 +202,27 @@ void put_code(op,len,aps,apd)
 struct amode    *aps, *apd;
 int             op, len;
 {       if( op == op_dc )
-		{
-		switch( len )
-			{
-			case 1: fprintf(output,"\tDC.B"); break;
-			case 2: fprintf(output,"\tDC.W"); break;
-			case 4: fprintf(output,"\tDC.L"); break;
-			}
-		}
-	else
-		{
-		putop(op);
-        	putlen(len);
-		}
+                {
+                switch( len )
+                        {
+                        case 1: fprintf(output,"\tDC.B"); break;
+                        case 2: fprintf(output,"\tDC.W"); break;
+                        case 4: fprintf(output,"\tDC.L"); break;
+                        }
+                }
+        else
+                {
+                putop(op);
+                putlen(len);
+                }
         if( aps != 0 )
                 {
                 fprintf(output,"\t");
-                putamode(aps);
+                putamode(aps); // TODO: bug fix?
                 if( apd != 0 )
                         {
                         fprintf(output,",");
-                       	putamode(apd);
+                        putamode(apd); // TODO: bug fix?
                         }
                 }
         fprintf(output,"\n");
@@ -264,8 +264,8 @@ void gen_strlab(s)
  */
 char    *s;
 {       char su[80];
-        strcpy(su,s);			/* Copy the label... */
-        upcase(su);			/* Convert to upper case */
+        strcpy(su,s);                   /* Copy the label... */
+        upcase(su);                     /* Convert to upper case */
         fprintf(output,"%s:\n",su);
 }
 

@@ -124,7 +124,7 @@ struct snode    *stmt;
                 gen_label(breaklab);
                 breaklab = lab2;        /* restore old break label */
                 }
-        else					        /* no loop code */
+        else                            /* no loop code */
                 {
                 initstack();
                 truejp(stmt->exp,contlab);
@@ -152,10 +152,10 @@ struct snode    *stmt;
         if( stmt->exp != 0 )
                 falsejp(stmt->exp,exit_label);
         if( stmt->s1 != 0 )
-		{
+                {
                 breaklab = exit_label;
                 genstmt(stmt->s1);
-		}
+                }
         initstack();
         if( stmt->s2 != 0 )
                 gen_expr((struct enode *)stmt->s2,F_ALL | F_NOVALUE,natural_size((struct enode *)stmt->s2));
@@ -263,7 +263,7 @@ struct snode    *stmt;
         if( ap->preg != 0 )
                 gen_code(op_move,4,ap,makedreg(0));
         stmt = stmt->s1;
-        call_library("_C_SWITCH");
+        call_library("_C_SWITCH"); /* TODO: asm format */
         while( stmt != 0 )
                 {
                 if( stmt->s2 )          /* default case ? */
@@ -406,8 +406,8 @@ void genfunc(stmt)
  */
 struct snode    *stmt;
 {       retlab = contlab = breaklab = -1;
-		if( lc_auto & 1 )	/* if frame size odd */
-			++lc_auto;		/* make it even */
+        if( lc_auto & 1 )       /* if frame size odd */
+                ++lc_auto;      /* make it even */
         gen_code(op_link,0,makeareg(6),make_immed(-lc_auto));
         opt1(stmt);
         genstmt(stmt);
