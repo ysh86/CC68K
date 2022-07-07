@@ -69,8 +69,9 @@ struct enode    *node1, *node2;
         if( node1->nodetype != node2->nodetype )
                 return 0;
         if( (node1->nodetype == en_icon || node1->nodetype == en_labcon ||
-            node1->nodetype == en_nacon || node1->nodetype == en_autocon) &&
-            node1->v.i == node2->v.i )
+            node1->nodetype == en_autocon) && node1->v.i == node2->v.i )
+                return 1;
+        if( node1->nodetype == en_nacon && node1->v.sp == node2->v.sp )
                 return 1;
         if( lvalue(node1) && equalnode(node1->v.p[0], node2->v.p[0]) )
                 return 1;

@@ -39,7 +39,7 @@ enum e_stmt {
         st_return };
 
 struct enode {
-        int		     nodetype;
+        int             nodetype;
         short           constflag;
         union {
                 int             i;
@@ -50,7 +50,7 @@ struct enode {
         };
 
 struct snode {
-        int			     stype;
+        int             stype;
         struct snode    *next;          /* next statement */
         struct enode    *exp;           /* condition or expression */
         struct snode    *s1, *s2;       /* internal statements */

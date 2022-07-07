@@ -31,7 +31,8 @@ extern struct amode     push[], pop[];
 
 extern char *xalloc();
 extern struct amode *make_offset();
-extern struct enode *makenode();
+extern struct enode *makenodei();
+extern struct enode *makenodesp();
 extern void initstack();
 extern void gen_label();
 extern void falsejp();
@@ -86,8 +87,8 @@ struct amode    *make_direct(i)
 /*
  *      make a direct reference to an immediate value.
  */
-struct enode *i;
-{       return make_offset(makenode(en_icon,i,(struct enode *)0));
+int i;
+{       return make_offset(makenodei(en_icon,i));
 }
 
 struct amode    *make_strlab(s)
@@ -98,8 +99,7 @@ char    *s;
 {       struct amode    *ap;
         ap = (struct amode *)xalloc(sizeof(struct amode));
         ap->mode = am_direct;
-        ap->offset = makenode(en_nacon,(struct enode *)s,
-                                       (struct enode *)0);
+        ap->v.offset = makenodesp(en_nacon,s);
         return ap;
 }
 

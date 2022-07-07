@@ -36,7 +36,7 @@ extern void freeop();
 extern struct amode *temp_data();
 extern void gen_code();
 extern struct amode *temp_addr();
-extern struct enode *makenode();
+extern struct enode *makenodei();
 extern void validate();
 extern void swap_nodes();
 extern void falsejp();
@@ -215,9 +215,7 @@ struct enode    *node;
                         ap1 = gen_expr(node->v.p[1],F_AREG,4);
                         ap1->sreg = node->v.p[0]->v.i;
                         ap1->mode = am_indx2;   /* 0(Ax,Dx) */
-                        ap1->offset = makenode(en_icon,
-                                              (struct enode *)0,
-                                              (struct enode *)0);
+                        ap1->v.offset = makenodei(en_icon,0);
                         return ap1;
                         }
                 ap1 = gen_expr(node->v.p[0],F_AREG,4);
@@ -232,9 +230,7 @@ struct enode    *node;
                         ap1->mode = am_indx3;
                         ap1->sreg = ap2->preg;
                         }
-                ap1->offset = makenode(en_icon,
-                                      (struct enode *)0,
-                                      (struct enode *)0);
+                ap1->v.offset = makenodei(en_icon,0);
                 return ap1;
                 }
         ap1 = gen_expr(node->v.p[0],F_AREG | F_IMMED,4);
@@ -295,8 +291,7 @@ int             flags, size;
                 ap1 =(struct amode *) xalloc(sizeof(struct amode));
                 ap1->mode = am_indx;
                 ap1->preg = 6;
-                ap1->offset = makenode(en_icon,(struct enode *)node->v.p[0]->v.i,
-                                               (struct enode *)0);
+                ap1->v.offset = makenodei(en_icon,node->v.p[0]->v.i);
                 do_extend(ap1,siz1,size,flags);
                 make_legal(ap1,flags,size);
                 return ap1;

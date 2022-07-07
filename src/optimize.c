@@ -24,7 +24,8 @@
 
 extern void swap_nodes();
 extern void fold_const();
-extern struct enode *makenode();
+extern struct enode *makenodei();
+extern struct enode *makenodep();
 
 
 void dooper(node)
@@ -125,13 +126,13 @@ struct enode    **node;
                 case en_b_ref:
                 case en_w_ref:          /* optimize unary node */
                 case en_l_ref:
-				case en_cbw:
-				case en_cbl:
-				case en_cwl:
-				case en_ainc:
-				case en_adec:
-				case en_not:
-				case en_compl:
+                case en_cbw:
+                case en_cbl:
+                case en_cwl:
+                case en_ainc:
+                case en_adec:
+                case en_not:
+                case en_compl:
                         opt0( &((*node)->v.p[0]));
                         return;
                 case en_uminus:
@@ -152,13 +153,13 @@ struct enode    **node;
                                         return;
                                         }
                                 if( ep->v.p[0]->v.i == 0 ) {
-					if( ep->nodetype == en_sub )
-					{
-						ep->v.p[0] = ep->v.p[1];
-                                        	ep->nodetype = en_uminus;
-					}
-					else
-						*node = ep->v.p[1];
+                                        if( ep->nodetype == en_sub )
+                                        {
+                                                ep->v.p[0] = ep->v.p[1];
+                                                ep->nodetype = en_uminus;
+                                        }
+                                        else
+                                                *node = ep->v.p[1];
                                         return;
                                         }
                                 }
@@ -267,9 +268,9 @@ struct enode    **node;
                                 dooper(node);
                         break;
                 case en_land:   case en_lor:
-				case en_lt:		case en_le:
-				case en_gt:		case en_ge:
-				case en_eq:		case en_ne:
+                case en_lt:     case en_le:
+                case en_gt:     case en_ge:
+                case en_eq:     case en_ne:
                 case en_asand:  case en_asor:
                 case en_asadd:  case en_assub:
                 case en_asmul:  case en_asdiv:
@@ -376,9 +377,8 @@ struct enode    **node;
         i = xfold(ep);
         if( i != 0 )
                 {
-                ep = makenode(en_icon,(struct enode *)i,
-                                      (struct enode *)0);
-                ep = makenode(en_add,ep,*node);
+                ep = makenodei(en_icon,i);
+                ep = makenodep(en_add,ep,*node);
                 *node = ep;
                 }
 }
@@ -389,7 +389,7 @@ void opt4(node)
  */
 struct enode    **node;
 {
-		opt0(node);
+        opt0(node);
         fold_const(node);
         opt0(node);
 }

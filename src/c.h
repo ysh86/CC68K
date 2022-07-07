@@ -49,7 +49,7 @@ struct slit {
 struct sym {
         struct sym      *next;
         char            *name;
-        int		       storage_class;
+        int             storage_class;
         union   {
                 long            i;
                 unsigned        u;
@@ -59,7 +59,7 @@ struct sym {
                         value;
 
         struct typ {
-                int		       type;
+                int             type;
                 char            val_flag;       /* is it a value type */
                 long            size;
                 struct stab {

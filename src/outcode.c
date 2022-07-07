@@ -95,8 +95,8 @@ struct enode    *offset;
                         fprintf(output,"L_%d",offset->v.i);
                         break;
                 case en_nacon:
-                        strcpy(su,(char *)(offset->v.p[0]));    /* copy labels str */
-                        upcase(su);		      /* Transform to upper */
+                        strcpy(su,offset->v.sp);    /* copy labels str */
+                        upcase(su);                 /* Transform to upper */
                         fprintf(output,"%s",su);
                         break;
                 case en_add:

@@ -66,13 +66,58 @@ extern SYM *search();
 extern void insert();
 extern int isscalar();
 
-struct enode    *makenode(nt, v1, v2)
+struct enode    *makenodei(nt, v1)
+/*
+ *      build an expression node with a node type of nt and value
+ *      v1.
+ */
+int nt;
+int v1;
+{       struct enode    *ep;
+        ep = (struct enode *)xalloc(sizeof(struct enode));
+        ep->nodetype = nt;
+        ep->constflag = 0;
+        ep->v.i = v1;
+        return ep;
+}
+
+struct enode    *makenodef(nt, v1)
+/*
+ *      build an expression node with a node type of nt and value
+ *      v1.
+ */
+int    nt;
+double v1;
+{       struct enode    *ep;
+        ep = (struct enode *)xalloc(sizeof(struct enode));
+        ep->nodetype = nt;
+        ep->constflag = 0;
+        ep->v.f = v1;
+        return ep;
+}
+
+struct enode    *makenodesp(nt, v1)
+/*
+ *      build an expression node with a node type of nt and value
+ *      v1.
+ */
+int   nt;
+char *v1;
+{       struct enode    *ep;
+        ep = (struct enode *)xalloc(sizeof(struct enode));
+        ep->nodetype = nt;
+        ep->constflag = 0;
+        ep->v.sp = v1;
+        return ep;
+}
+
+struct enode    *makenodep(nt, v1, v2)
 /*
  *      build an expression node with a node type of nt and values
  *      v1 and v2.
  */
-int			     nt;
-struct enode            *v1, *v2;
+int           nt;
+struct enode *v1, *v2;
 {       struct enode    *ep;
         ep = (struct enode *)xalloc(sizeof(struct enode));
         ep->nodetype = nt;
@@ -91,18 +136,18 @@ struct enode    **node;
 TYP             *tp;
 {       switch( tp->type ) {
                 case bt_char:
-                        *node = makenode(en_b_ref,*node,(struct enode *)0);
+                        *node = makenodep(en_b_ref,*node,0);
                         tp = &stdint;
                         break;
                 case bt_short:
                 case bt_enum:
-                        *node = makenode(en_w_ref,*node,(struct enode *)0);
+                        *node = makenodep(en_w_ref,*node,0);
                         tp = &stdint;
                         break;
                 case bt_long:
                 case bt_pointer:
                 case bt_unsigned:
-                        *node = makenode(en_l_ref,*node,(struct enode *)0);
+                        *node = makenodep(en_l_ref,*node,0);
                         break;
                 default:
                         error(ERR_DEREF);
@@ -136,8 +181,7 @@ struct enode    **node;
                         insert(sp,&gsyms);
                         --global_flag;
                         tp = &stdfunc;
-                        *node = makenode(en_nacon,(struct enode *)sp->name,
-                                                  (struct enode *)0);
+                        *node = makenodesp(en_nacon,sp->name);
                         (*node)->constflag = 1;
                         }
                 else    {
@@ -152,30 +196,22 @@ struct enode    **node;
                         }
                 switch( sp->storage_class ) {
                         case sc_static:
-                                *node = makenode(en_labcon,
-                                                (struct enode *)sp->value.i,
-                                                (struct enode *)0);
+                                *node = makenodei(en_labcon,sp->value.i);
                                 (*node)->constflag = 1;
                                 break;
                         case sc_global:
                         case sc_external:
-                                *node = makenode(en_nacon,
-                                                (struct enode *)sp->name,
-                                                (struct enode *)0);
+                                *node = makenodesp(en_nacon,sp->name);
                                 (*node)->constflag = 1;
                                 break;
                         case sc_const:
-                                *node = makenode(en_icon,
-                                                (struct enode *)sp->value.i,
-                                                (struct enode *)0);
+                                *node = makenodei(en_icon,sp->value.i);
                                 (*node)->constflag = 1;
                                 break;
                         default:        /* auto and any errors */
                                 if( sp->storage_class != sc_auto)
                                         error(ERR_ILLCLASS);
-                                *node = makenode(en_autocon,
-                                                (struct enode *)sp->value.i,
-                                                (struct enode *)0);
+                                *node = makenodei(en_autocon,sp->value.i);
                                 break;
                         }
                 if( tp->val_flag == 0)
@@ -196,7 +232,7 @@ struct enode    *parmlist()
         ep1 = 0;
         while( lastst != closepa) {
                 exprnc( &ep2);          /* evaluate a parameter */
-                ep1 = makenode(en_void,ep2,ep1);
+                ep1 = makenodep(en_void,ep2,ep1);
                 if( lastst != comma)
                         break;
                 getsym();
@@ -241,16 +277,13 @@ struct enode    **node;
                         break;
                 case iconst:
                         tptr = &stdint;
-                        pnode = makenode(en_icon,(struct enode *)ival,
-                                        (struct enode *)0);
+                        pnode = makenodei(en_icon,ival);
                         pnode->constflag = 1;
                         getsym();
                         break;
                 case sconst:
                         tptr = &stdstring;
-                        pnode = makenode(en_labcon,
-                                        (struct enode *)stringlit(laststr),
-                                        (struct enode *)0);
+                        pnode = makenodei(en_labcon,stringlit(laststr));
                         pnode->constflag = 1;
                         getsym();
                         break;
@@ -283,18 +316,16 @@ struct enode    **node;
                                 else
                                         tptr = tptr->btp;
                                 getsym();
-                                qnode = makenode(en_icon,
-                                                (struct enode *)tptr->size,
-                                                (struct enode *)0);
+                                qnode = makenodei(en_icon,tptr->size);
                                 qnode->constflag = 1;
                                 expression(&rnode);
 /*
  *      we could check the type of the expression here...
  */
-                                qnode = makenode(en_mul,qnode,rnode);
+                                qnode = makenodep(en_mul,qnode,rnode);
                                 qnode->constflag = rnode->constflag &&
                                         qnode->v.p[0]->constflag;
-                                pnode = makenode(en_add,qnode,pnode);
+                                pnode = makenodep(en_add,qnode,pnode);
                                 pnode->constflag = qnode->constflag &&
                                         pnode->v.p[1]->constflag;
                                 if( tptr->val_flag == 0 )
@@ -307,8 +338,7 @@ struct enode    **node;
                                 else
                                         tptr = tptr->btp;
                                 if( tptr->val_flag == 0 )
-                                        pnode = makenode(en_l_ref,pnode,
-                                                        (struct enode *)0);
+                                        pnode = makenodep(en_l_ref,pnode,0);
 /*
  *      fall through to dot operation
  */
@@ -322,10 +352,9 @@ struct enode    **node;
                                                 error(ERR_NOMEMBER);
                                         else    {
                                                 tptr = sp->tp;
-                                                qnode = makenode(en_icon,(struct enode *)sp->value.i,
-                                                                (struct enode *)0);
+                                                qnode = makenodei(en_icon,sp->value.i);
                                                 qnode->constflag = 1;
-                                                pnode = makenode(en_add,pnode,qnode);
+                                                pnode = makenodep(en_add,pnode,qnode);
                                                 pnode->constflag = pnode->v.p[0]->constflag;
                                                 if( tptr->val_flag == 0 )
                                                     tptr = deref(&pnode,tptr);
@@ -340,7 +369,7 @@ struct enode    **node;
                                         error(ERR_NOFUNC);
                                 else
                                         tptr = tptr->btp;
-                                pnode = makenode(en_fcall,pnode,parmlist());
+                                pnode = makenodep(en_fcall,pnode,parmlist());
                                 needpunc(closepa);
                                 break;
                         default:
@@ -412,15 +441,11 @@ struct enode    **node;
                                 }
                         if( lvalue(ep1)) {
                                 if( tp->type == bt_pointer )
-                                        ep2 = makenode(en_icon,
-                                                      (struct enode *)tp->btp->size,
-                                                      (struct enode *)0);
+                                        ep2 = makenodei(en_icon,tp->btp->size);
                                  else
-                                        ep2 = makenode(en_icon,
-                                                      (struct enode *)1,
-                                                      (struct enode *)0);
+                                        ep2 = makenodei(en_icon,1);
                                 ep2->constflag = 1;
-                                ep1 = makenode(flag ? en_assub : en_asadd,ep1,ep2);
+                                ep1 = makenodep(flag ? en_assub : en_asadd,ep1,ep2);
                                 }
                         else
                                 error(ERR_LVALUE);
@@ -432,7 +457,7 @@ struct enode    **node;
                                 error(ERR_IDEXPECT);
                                 return 0;
                                 }
-                        ep1 = makenode(en_uminus,ep1,(struct enode *)0);
+                        ep1 = makenodep(en_uminus,ep1,0);
                         ep1->constflag = ep1->v.p[0]->constflag;
                         break;
                 case not:
@@ -442,7 +467,7 @@ struct enode    **node;
                                 error(ERR_IDEXPECT);
                                 return 0;
                                 }
-                        ep1 = makenode(en_not,ep1,(struct enode *)0);
+                        ep1 = makenodep(en_not,ep1,0);
                         ep1->constflag = ep1->v.p[0]->constflag;
                         break;
                 case compl:
@@ -452,7 +477,7 @@ struct enode    **node;
                                 error(ERR_IDEXPECT);
                                 return 0;
                                 }
-                        ep1 = makenode(en_compl,ep1,(struct enode *)0);
+                        ep1 = makenodep(en_compl,ep1,0);
                         ep1->constflag = ep1->v.p[0]->constflag;
                         break;
                 case star:
@@ -494,13 +519,10 @@ struct enode    **node;
                         decl(dummyptr);
                         decl1();
                         if( head != 0 )
-                                ep1 = makenode(en_icon,
-                                              (struct enode *)head->size,
-                                              (struct enode *)0);
+                                ep1 = makenodei(en_icon,head->size);
                         else    {
                                 error(ERR_IDEXPECT);
-                                ep1 = makenode(en_icon,(struct enode *)1,
-                                              (struct enode *)0);
+                                ep1 = makenodei(en_icon,1);
                                 }
                         ep1->constflag = 1;
                         tp = &stdint;
@@ -515,16 +537,16 @@ struct enode    **node;
                                         i = 1;
                                 if( lastst == autoinc) {
                                         if( lvalue(ep1) )
-                                                ep1 = makenode(en_ainc,ep1,
-                                                              (struct enode *)i);
+                                                ep1 = makenodep(en_ainc,ep1,
+                                                              (struct enode *)(long)i);
                                         else
                                                 error(ERR_LVALUE);
                                         getsym();
                                         }
                                 else if( lastst == autodec ) {
                                         if( lvalue(ep1) )
-                                                ep1 = makenode(en_adec,ep1,
-                                                              (struct enode *)i);
+                                                ep1 = makenodep(en_adec,ep1,
+                                                              (struct enode *)(long)i);
                                         else
                                                 error(ERR_LVALUE);
                                         getsym();
@@ -611,21 +633,21 @@ struct enode    **node;
                 switch( oper ) {
                         case star:
                                 if( tp1->type == bt_unsigned )
-                                        ep1 = makenode(en_umul,ep1,ep2);
+                                        ep1 = makenodep(en_umul,ep1,ep2);
                                 else
-                                        ep1 = makenode(en_mul,ep1,ep2);
+                                        ep1 = makenodep(en_mul,ep1,ep2);
                                 break;
                         case divide:
                                 if( tp1->type == bt_unsigned )
-                                        ep1 = makenode(en_udiv,ep1,ep2);
+                                        ep1 = makenodep(en_udiv,ep1,ep2);
                                 else
-                                        ep1 = makenode(en_div,ep1,ep2);
+                                        ep1 = makenodep(en_div,ep1,ep2);
                                 break;
                         case modop:
                                 if( tp1->type == bt_unsigned )
-                                        ep1 = makenode(en_umod,ep1,ep2);
+                                        ep1 = makenodep(en_umod,ep1,ep2);
                                 else
-                                        ep1 = makenode(en_mod,ep1,ep2);
+                                        ep1 = makenodep(en_mod,ep1,ep2);
                                 break;
                         }
                 ep1->constflag = ep1->v.p[0]->constflag &&
@@ -657,24 +679,20 @@ struct enode    **node;
                         }
                 if( tp1->type == bt_pointer ) {
                         tp2 = forcefit(&stdint,tp2);
-                        ep3 = makenode(en_icon,
-                                      (struct enode *)tp1->btp->size,
-                                      (struct enode *)0);
+                        ep3 = makenodei(en_icon,tp1->btp->size);
                         ep3->constflag = 1;
-                        ep2 = makenode(en_mul,ep3,ep2);
+                        ep2 = makenodep(en_mul,ep3,ep2);
                         ep2->constflag = ep2->v.p[1]->constflag;
                         }
                 else if( tp2->type == bt_pointer ) {
                         tp1 = forcefit(&stdint,tp1);
-                        ep3 = makenode(en_icon,
-                                      (struct enode *)tp2->btp->size,
-                                      (struct enode *)0);
+                        ep3 = makenodei(en_icon,tp2->btp->size);
                         ep3->constflag = 1;
-                        ep1 = makenode(en_mul,ep3,ep1);
+                        ep1 = makenodep(en_mul,ep3,ep1);
                         ep1->constflag = ep1->v.p[1]->constflag;
                         }
                 tp1 = forcefit(tp1,tp2);
-                ep1 = makenode( oper ? en_add : en_sub,ep1,ep2);
+                ep1 = makenodep( oper ? en_add : en_sub,ep1,ep2);
                 ep1->constflag = ep1->v.p[0]->constflag &&
                         ep1->v.p[1]->constflag;
                 }
@@ -701,7 +719,7 @@ struct enode    **node;
                         error(ERR_IDEXPECT);
                 else    {
                         tp1 = forcefit(tp1,tp2);
-                        ep1 = makenode(oper ? en_lsh : en_rsh,ep1,ep2);
+                        ep1 = makenodep(oper ? en_lsh : en_rsh,ep1,ep2);
                         ep1->constflag = ep1->v.p[0]->constflag &&
                                 ep1->v.p[1]->constflag;
                         }
@@ -757,7 +775,7 @@ struct enode    **node;
                         error(ERR_IDEXPECT);
                 else    {
                         tp1 = forcefit(tp1,tp2);
-                        ep1 = makenode(nt,ep1,ep2);
+                        ep1 = makenodep(nt,ep1,ep2);
                         ep1->constflag = ep1->v.p[0]->constflag &&
                                 ep1->v.p[1]->constflag;
                         }
@@ -785,7 +803,7 @@ struct enode    **node;
                         error(ERR_IDEXPECT);
                 else    {
                         tp1 = forcefit(tp1,tp2);
-                        ep1 = makenode( oper ? en_eq : en_ne,ep1,ep2);
+                        ep1 = makenodep( oper ? en_eq : en_ne,ep1,ep2);
                         ep1->constflag = ep1->v.p[0]->constflag &&
                                 ep1->v.p[1]->constflag;
                         }
@@ -814,7 +832,7 @@ int             nt, sy;
                         error(ERR_IDEXPECT);
                 else    {
                         tp1 = forcefit(tp1,tp2);
-                        ep1 = makenode(nt,ep1,ep2);
+                        ep1 = makenodep(nt,ep1,ep2);
                         ep1->constflag = ep1->v.p[0]->constflag &&
                                 ep1->v.p[1]->constflag;
                         }
@@ -873,8 +891,8 @@ struct enode    **node;
                         goto cexit;
                         }
                 tp1 = forcefit(tp2,tp3);
-                ep2 = makenode(en_void,ep2,ep3);
-                ep1 = makenode(en_cond,ep1,ep2);
+                ep2 = makenodep(en_void,ep2,ep3);
+                ep1 = makenodep(en_cond,ep1,ep2);
                 }
 cexit:  *node = ep1;
         return tp1;
@@ -902,17 +920,15 @@ ascomm:                         getsym();
                                         error(ERR_LVALUE);
                                 else    {
                                         tp1 = forcefit(tp1,tp2);
-                                        ep1 = makenode(op,ep1,ep2);
+                                        ep1 = makenodep(op,ep1,ep2);
                                         }
                                 break;
                         case asplus:
                                 op = en_asadd;
 ascomm3:                        tp2 = asnop(&ep2);
                                 if( tp1->type == bt_pointer ) {
-                                        ep3 = makenode(en_icon,
-                                                      (struct enode *)tp1->btp->size,
-                                                      (struct enode *)0);
-                                        ep2 = makenode(en_mul,ep2,ep3);
+                                        ep3 = makenodei(en_icon,tp1->btp->size);
+                                        ep2 = makenodep(en_mul,ep2,ep3);
                                         }
                                 goto ascomm;
                         case asminus:
@@ -976,7 +992,7 @@ struct enode    **node;
                         error(ERR_IDEXPECT);
                         goto coexit;
                         }
-                ep1 = makenode(en_void,ep1,ep2);
+                ep1 = makenodep(en_void,ep1,ep2);
                 }
 coexit: *node = ep1;
         return tp1;
