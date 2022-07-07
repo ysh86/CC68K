@@ -74,18 +74,18 @@ SYM     *sp;
                 for(i = 0;i < nparms;++i) {
                         if( (sp1 = search(names[i],lsyms.head)) == 0)
                                 sp1 = makeint(names[i]);
-						if( sp1->tp->size < 4 )
-						{
-							sp1->value.i = poffset + (4 - sp1->tp->size);
-							poffset += 4;
-						}
-						else
-						{
-							sp1->value.i =(long)poffset;
-							poffset +=(int)( sp1->tp->size);
-						}
+                        if( sp1->tp->size < 4 )
+                        {
+                                sp1->value.i = poffset + (4 - sp1->tp->size);
+                                poffset += 4;
+                        }
+                        else
+                        {
+                                sp1->value.i =(long)poffset;
+                                poffset +=(int)( sp1->tp->size);
+                        }
                         sp1->storage_class = sc_auto;
-					}
+                        }
                 }
         if(lastst != begin)
                 error(ERR_BLOCK);
@@ -138,7 +138,7 @@ void funcbottom()
 void block()
 {       needpunc(begin);
         dodecl(sc_auto);
-		cseg();
+        cseg();
         genfunc(compound());
         flush_peep();
 }
