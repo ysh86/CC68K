@@ -25,7 +25,7 @@
 
 extern void getsym();
 extern void error();
-extern int getline();
+extern int getl();
 extern int doinclude();
 extern int dodefine();
 extern char *xalloc();
@@ -43,7 +43,7 @@ int  preprocess()
         getsym();               /* get first word on line */
         if( lastst != id ) {
                 error(ERR_PREPROC);
-                return getline(incldepth == 0);
+                return getl(incldepth == 0);
                 }
         if( strcmp(lastid,"include") == 0 )
                 return doinclude();
@@ -51,7 +51,7 @@ int  preprocess()
                 return dodefine();
         else    {
                 error(ERR_PREPROC);
-                return getline(incldepth == 0);
+                return getl(incldepth == 0);
                 }
 }
 
@@ -60,7 +60,7 @@ int doinclude()
         getsym();               /* get file to include */
         if( lastst != sconst ) {
                 error(ERR_INCLFILE);
-                return getline(incldepth == 0);
+                return getl(incldepth == 0);
                 }
         inclline[incldepth] = lineno;
         inclfile[incldepth++] = input;  /* push current input file */
@@ -68,10 +68,10 @@ int doinclude()
         if( input == 0 ) {
                 input = inclfile[--incldepth];
                 error(ERR_CANTOPEN);
-                rv = getline(incldepth == 0);
+                rv = getl(incldepth == 0);
                 }
         else    {
-                rv = getline(incldepth == 1);
+                rv = getl(incldepth == 1);
                 lineno = -32768;        /* dont list include files */
                 }
         return rv;
@@ -82,7 +82,7 @@ int dodefine()
         getsym();               /* get past #define */
         if( lastst != id ) {
                 error(ERR_DEFINE);
-                return getline(incldepth == 0);
+                return getl(incldepth == 0);
                 }
         ++global_flag;          /* always do #define as globals */
         sp =(SYM *) xalloc(sizeof(SYM));
@@ -90,5 +90,5 @@ int dodefine()
         sp->value.s = litlate(lptr);
         insert(sp,&defsyms);
         --global_flag;
-        return getline(incldepth == 0);
+        return getl(incldepth == 0);
 }

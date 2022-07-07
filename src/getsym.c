@@ -67,7 +67,7 @@ void initsym()
         lineno = 0;
 }
 
-int     getline(listflag)
+int     getl(listflag)
 int     listflag;
 {       int     rv;
         if( lineno > 0 && listflag) {
@@ -82,7 +82,7 @@ int     listflag;
                 fclose(input);
                 input = inclfile[--incldepth];
                 lineno = inclline[incldepth];
-                return getline(0);
+                return getl(0);
                 }
         if( rv )
                 return 1;
@@ -102,7 +102,7 @@ int     getch()
                         lastch =(int) chstack[lstackptr];
                         return lastch;
                         }
-                if(getline(incldepth == 0))
+                if(getl(incldepth == 0))
                         return lastch = -1;
                 }
         return lastch;
@@ -177,8 +177,8 @@ int     getsch()        /* return an in-quote character */
                         return '\n';
                 case 'r':
                         return '\r';
-				case 't':
-						return '\t';
+                case 't':
+                        return '\t';
                 default:
                         return i;
                 }
