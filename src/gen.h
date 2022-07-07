@@ -30,6 +30,7 @@ struct ocode {
         short           opcode;
         short           length;
         struct amode    *oper1, *oper2;
+        int             label;
         };
 
 enum e_op {

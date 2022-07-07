@@ -94,7 +94,7 @@ int     labno;
 {       struct ocode    *new;
         new =(struct ocode *) xalloc(sizeof(struct ocode));
         new->opcode = op_label;
-        new->oper1 =(struct amode *) labno;
+        new->label = labno;
         add_peep(new);
 }
 
@@ -106,7 +106,7 @@ void flush_peep()
         while( peep_head != 0 )
                 {
                 if( peep_head->opcode == op_label )
-                        put_label((int)(peep_head->oper1));
+                        put_label(peep_head->label);
                 else
                         put_ocode(peep_head);
                 peep_head = peep_head->fwd;
