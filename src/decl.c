@@ -95,8 +95,10 @@ TABLE   *table;
                         if( lastst == kw_int )
                                 getsym();
                         break;
-                case id:                /* no type declarator */
+                case id: case kw_void:  /* no type declarator */
                         head = tail = maketype(bt_long,4);
+                        if( lastst == kw_void )
+                                getsym();
                         break;
                 case kw_float:
                         head = tail = maketype(bt_float,4);
