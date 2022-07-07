@@ -1,5 +1,5 @@
 #include        "stdio.h"
-#include        "malloc.h"
+#include        "stdlib.h"
 #include        "c.h"
 #include        "expr.h"
 #include        "gen.h"
